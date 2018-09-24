@@ -11,20 +11,20 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
-import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.jdesktop.swingx.JXTree;
 
 public class BookmarkManager
 
 {
 
     private JPanel panel;
-    private JTree tree;
+    private JXTree tree;
     private DefaultMutableTreeNode rootNode;
     private Logfile logfile;
 
@@ -54,12 +54,12 @@ public class BookmarkManager
     private void initPanel()
     {
         panel = new JPanel();
-        panel.setPreferredSize(new Dimension(200, 200));
+        panel.setPreferredSize(new Dimension(200, 800));
 
         rootNode = new DefaultMutableTreeNode(logfile.getDisplayName());
         rootNode.setUserObject(logfile);
 
-        tree = new JTree(rootNode);
+        tree = new JXTree(rootNode);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(createListener());
         panel.setBorder(BorderFactory.createRaisedSoftBevelBorder());

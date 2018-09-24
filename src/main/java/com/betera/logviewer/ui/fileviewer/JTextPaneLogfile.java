@@ -8,6 +8,7 @@ import com.betera.logviewer.file.highlight.HighlightEntry;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.bookmark.BookmarkManager;
 import com.betera.logviewer.ui.bookmark.DefaultBookmark;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.AdjustmentEvent;
@@ -51,6 +52,8 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
+import org.jdesktop.swingx.JXTaskPane;
+import org.jdesktop.swingx.JXTaskPaneContainer;
 
 public class JTextPaneLogfile
         implements Logfile, Runnable, MouseListener
@@ -138,7 +141,18 @@ public class JTextPaneLogfile
 
         bookmarkManager = new BookmarkManager(this);
 
-        splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPane, bookmarkManager.getComponent());
+        JXTaskPaneContainer taskContainer = new JXTaskPaneContainer();
+        taskContainer.setPaintBorderInsets(false);
+        taskContainer.setBackground(Color.LIGHT_GRAY);
+        taskContainer.setBackgroundPainter(null);
+        JXTaskPane bookmarkTask = new JXTaskPane();
+        bookmarkTask.setAnimated(false);
+        bookmarkTask.setSpecial(false);
+        bookmarkTask.setLayout(new BorderLayout());
+        bookmarkTask.setTitle("Bookmarks");
+        bookmarkTask.add(bookmarkManager.getComponent());
+        taskContainer.add(bookmarkTask);
+        splitter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, scrollPane, taskContainer);
 
         splitter.setDividerSize(8);
         splitter.setResizeWeight(0.9);
