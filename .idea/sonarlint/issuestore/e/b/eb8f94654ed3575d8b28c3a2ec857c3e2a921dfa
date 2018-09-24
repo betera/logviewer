@@ -1,30 +1,0 @@
-
-¥squid:S1186¢"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(ºùüüÿÿÿÿ8„€­İß,
-Gsquid:S1148ß"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8„€­İß,
-Lsquid:S1604Â"(Make this anonymous inner class a lambda(Õ‰²­ıÿÿÿÿ8¢ŒÆÑà,
-esquid:S2142ı"FEither re-interrupt this method or rethrow the "InterruptedException".(‰¡Áê8¢ŒÆÑà,
-Gsquid:S1148Î"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8¢ŒÆÑà,
-Gsquid:S1148Î"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8„€­İß,
-Gsquid:S1148ó"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8¢ŞÑÛß,
-Ysquid:S1161ä":Add the "@Override" annotation above this method signature(–Íº×8„€­İß,
-Gsquid:S1148…"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8¢ŒÆÑà,
-^squid:S1854ö"?Remove this useless assignment to local variable "fileChanged".(òŸä 8¢ŒÆÑà,
-Gsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8ƒ¥”Üß,
- squid:S1186œ"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(«Æ†8„€­İß,
-Ÿsquid:S1186–"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(Ä·8„€­İß,
-Gsquid:S1148è"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8¢ŒÆÑà,
-Wsquid:S1068F"9Remove this unused "scrollListenerEnabled" private field.(ÿÈŞĞ8²ğÛÑà,
-^squid:S1854â"?Remove this useless assignment to local variable "fileChanged".(òŸä 8¢ŒÆÑà,
-vsquid:S3776£"RRefactor this method to reduce its Cognitive Complexity from 35 to the 15 allowed.(ÿŸ¾Ğüÿÿÿÿ8¢ŞÑÛß,
-|
-squid:S135²"YReduce the total number of break and continue statements in this loop to use at most one.(˜õßüÿÿÿÿ8¢ŞÑÛß,
- squid:S1186¨"€Add a nested comment explaining why this method is empty, throw an UnsupportedOperationException or complete the implementation.(³¹³˜8„€­İß,
-jsquid:CommentedOutCodeLine¸"<This block of commented-out lines of code should be removed.(ƒô¹8¡ÒÛ‹ß,
-Gsquid:S1148ÿ"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8¢ŞÑÛß,
-Ysquid:S1161²":Add the "@Override" annotation above this method signature(ôîÅì8„€­İß,
-Osquid:S1948°"0Make "defaultFactory" transient or serializable.(°¹±–8„€­İß,
-‚squid:S1450F"dRemove the "scrollListenerEnabled" field and declare it as a local variable in the relevant methods.(ÿÈŞĞ8²ğÛÑà,
-Tsquid:S1481±"0Remove this unused "fileChanged" local variable.(ÛªãÛùÿÿÿÿ8¢ŒÆÑà,
-^squid:S1854Ò"?Remove this useless assignment to local variable "fileChanged".(òŸä 8¢ŒÆÑà,
-Gsquid:S1148"#Use a logger to log this exception.(€ÉÔ…ıÿÿÿÿ8„€­İß,
-Ksquid:S1604O"(Make this anonymous inner class a lambda(ØÃìŠÿÿÿÿÿ8¢ŒÆÑà,

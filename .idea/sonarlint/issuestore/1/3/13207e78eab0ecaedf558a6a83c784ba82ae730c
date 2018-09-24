@@ -1,8 +1,0 @@
-
-Osquid:S1068Ú"0Remove this unused "showFullName" private field.(ÈÃæ8‹ÌÎÚß,
-Fsquid:S1604í"(Make this anonymous inner class a lambda(½‹ı~8Ş·¬Ûß,
-esquid:S2259"AA "NullPointerException" could be thrown; "tab" is nullable here.(¿º±éûÿÿÿÿ8û İÛß,
-Msquid:S1948Ò")Make "logfile" transient or serializable.(Ó¾—ùÿÿÿÿ8–°¿Úß,
-hsquid:UnusedPrivateMethods"7Remove this unused private "getIndexForLogfile" method.(¥úÕ›úÿÿÿÿ8»—áÛß,
-Fsquid:S1604/"(Make this anonymous inner class a lambda(ùĞ¶É8úàçÛß,
-Zsquid:S25898"7Remove this expression which always evaluates to "true"(¸©²óøÿÿÿÿ8ÎïÛß,

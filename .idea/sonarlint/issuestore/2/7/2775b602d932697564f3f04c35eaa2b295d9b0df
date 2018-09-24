@@ -1,12 +1,0 @@
-
-usquid:S14500"WRemove the "fileMenu" field and declare it as a local variable in the relevant methods.(‡¸Íå8èØ”àŞ,
-Fsquid:S1148j"#Use a logger to log this exception.(Âşÿâûÿÿÿÿ8›Ü…Úß,
-ysquid:S1450."VRemove the "menuBar" field and declare it as a local variable in the relevant methods.(ëùĞ³ûÿÿÿÿ8èØ”àŞ,
-Lsquid:S1604º"(Make this anonymous inner class a lambda(¨úÜ¸ùÿÿÿÿ8èØ”àŞ,
-[squid:S1854M"=Remove this useless assignment to local variable "logViewer".(çŸ³8èØ”àŞ,
-Xsquid:S2130è"9Use "Integer.parseInt" for this string-to-int conversion.(ß·§8èØ”àŞ,
-dsquid:UnusedPrivateMethod“"2Remove this unused private "createMenuBar" method.(×Ô­–øÿÿÿÿ8èØ”àŞ,
-}squid:S14502"_Remove the "openFileMenuItem" field and declare it as a local variable in the relevant methods.(à¤¥›8èØ”àŞ,
-usquid:S2159—"VRemove this call to "equals"; comparisons between unrelated types always return false.(¼èÅ˜8‘¢¥Úß,
-Xsquid:S2130é"9Use "Integer.parseInt" for this string-to-int conversion.(‹ÚĞâ8èØ”àŞ,
-Lsquid:S1481M".Remove this unused "logViewer" local variable.(çŸ³8èØ”àŞ,
