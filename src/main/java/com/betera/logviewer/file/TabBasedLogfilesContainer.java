@@ -48,6 +48,11 @@ public class TabBasedLogfilesContainer
             @Override
             public void stateChanged(ChangeEvent e)
             {
+                if ( component.getSelectedIndex() < 0 )
+                {
+                    return;
+                }
+
                 Component comp = component.getTabComponentAt(component.getSelectedIndex());
                 if ( comp instanceof LogfileTab )
                 {
@@ -151,7 +156,7 @@ public class TabBasedLogfilesContainer
     public void contentChanged(boolean hasChanges, Logfile logfile)
     {
         LogfileTab tab = getTabForLogfile(logfile);
-        if ( !component.getSelectedComponent().equals(tab) )
+        if ( tab != null && !component.getSelectedComponent().equals(tab) )
         {
             tab.setHasChanges(hasChanges && !isLogfileFocused(logfile));
         }
@@ -177,22 +182,6 @@ public class TabBasedLogfilesContainer
         }
         logViewer.getFollowTailCheckbox().setSelected(doFollowTail);
         fireFollowTailChanged(doFollowTail, source);
-    }
-
-    @Override
-    public void focusLogfile(Logfile file, int offset)
-    {
-        for ( int i = 0; i < component.getTabCount(); i++ )
-        {
-            if ( file.getName().equals(component.getTitleAt(i)) )
-            {
-                component.setSelectedIndex(i);
-                ((LogfileTab) component.getTabComponentAt(i)).setHasChanges(false);
-                file.scrollTo(offset);
-                return;
-            }
-        }
-
     }
 
     @Override

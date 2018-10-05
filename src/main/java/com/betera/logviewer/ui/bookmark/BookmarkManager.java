@@ -6,17 +6,21 @@ import com.betera.logviewer.ui.action.NextBookmarkAction;
 import com.betera.logviewer.ui.action.PrevBookmarkAction;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+import org.jdesktop.swingx.JXFindBar;
 import org.jdesktop.swingx.JXTree;
 
 public class BookmarkManager
@@ -45,7 +49,7 @@ public class BookmarkManager
                 if ( node instanceof LogBookmark )
                 {
                     LogBookmark bookmark = (LogBookmark) node;
-                    logfile.scrollTo(bookmark.getOffset());
+                    logfile.scrollTo(bookmark.getOffset(), bookmark.getRow());
                 }
             }
         };
@@ -60,16 +64,32 @@ public class BookmarkManager
         rootNode.setUserObject(logfile);
 
         tree = new JXTree(rootNode);
+        JXFindBar findBar = new JXFindBar(tree.getSearchable())
+        {
+            protected void build()
+            {
+                setLayout(new FlowLayout(SwingConstants.LEADING));
+                add(searchField);
+                add(findNext);
+                add(findPrevious);
+            }
+        };
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         tree.addTreeSelectionListener(createListener());
         panel.setBorder(BorderFactory.createRaisedSoftBevelBorder());
         panel.setLayout(new BorderLayout());
 
         JToolBar toolbar = new JToolBar();
-        toolbar.add(new DeleteAllBookmarksAction(this));
-        toolbar.add(new PrevBookmarkAction(this));
-        toolbar.add(new NextBookmarkAction(this));
+        toolbar.setLayout(new GridLayout(0, 1));
+        JToolBar actionBar = new JToolBar();
+
+        actionBar.add(new DeleteAllBookmarksAction(this));
+        actionBar.add(new PrevBookmarkAction(this));
+        actionBar.add(new NextBookmarkAction(this));
+        toolbar.add(actionBar);
+        toolbar.add(findBar);
         toolbar.setFloatable(false);
+        actionBar.setFloatable(false);
         panel.add(toolbar, BorderLayout.NORTH);
         panel.add(new JScrollPane(tree), BorderLayout.CENTER);
     }

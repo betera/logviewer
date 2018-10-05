@@ -17,8 +17,6 @@ public interface LogfilesContainer
 
     void updateFollowTailCheckbox(boolean doFollowTail, Logfile source);
 
-    void focusLogfile(Logfile file, int offset);
-
     List<Logfile> getOpenLogfiles();
 
     boolean isLogfileFocused(Logfile aLogfile);

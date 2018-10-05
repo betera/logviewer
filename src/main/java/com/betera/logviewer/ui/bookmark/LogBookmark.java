@@ -13,4 +13,6 @@ public interface LogBookmark
 
     int getOffset();
 
+    int getRow();
+
 }

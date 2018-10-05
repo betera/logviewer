@@ -31,7 +31,5 @@ public interface Logfile
 
     String toString();
 
-    void scrollTo(int offset);
-
-    void processLine(String aLine);
+    void scrollTo(int offset, int row);
 }

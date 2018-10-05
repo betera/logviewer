@@ -1,6 +1,5 @@
 package com.betera.logviewer.ui.bookmark;
 
-import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.highlight.HighlightEntry;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -13,10 +12,12 @@ public class DefaultBookmark
     private int offset;
     private String title;
     private HighlightEntry entry;
+    private int row;
 
-    public DefaultBookmark(Logfile logfile, int offset, HighlightEntry entry, String title)
+    public DefaultBookmark(Logfile logfile, int offset, int row, HighlightEntry entry, String title)
     {
         super();
+        this.row = row;
         this.title = title;
         this.entry = entry;
         this.logfile = logfile;
@@ -26,11 +27,6 @@ public class DefaultBookmark
     @Override
     public String toString()
     {
-        if ( title.length() > LogViewer.BOOKMARK_MAX_TITLE_SIZE )
-        {
-            title = title.substring(0, LogViewer.BOOKMARK_MAX_TITLE_SIZE - 3) + "...";
-        }
-
         return title;
     }
 
@@ -50,5 +46,11 @@ public class DefaultBookmark
     public int getOffset()
     {
         return offset;
+    }
+
+    @Override
+    public int getRow()
+    {
+        return row;
     }
 }

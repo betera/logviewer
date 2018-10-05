@@ -3,6 +3,7 @@ package com.betera.logviewer;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.LogfilesContainer;
 import com.betera.logviewer.file.TabBasedLogfilesContainer;
+import com.betera.logviewer.file.column.LogfileParser;
 import com.betera.logviewer.file.highlight.HighlightEntry;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.action.OpenFileAction;
@@ -20,6 +21,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
@@ -51,6 +53,8 @@ public class LogViewer
 
     private JCheckBox followTailCheckbox;
 
+    private JPanel content;
+
     public LogViewer()
             throws
             ClassNotFoundException,
@@ -59,9 +63,7 @@ public class LogViewer
             IllegalAccessException,
             IOException
     {
-        super();
         init();
-        mainFrame.setVisible(true);
     }
 
     public static void main(String[] args)
@@ -85,10 +87,13 @@ public class LogViewer
     {
 
         readHighlightConfig();
+        LogfileParser.readColumnFormatterConfig();
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
         mainFrame = new JFrame();
+        ImageIcon icon = new ImageIcon("./images/logviewer.png");
+        mainFrame.setIconImage(icon.getImage());
         mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         mainFrame.addWindowListener(new WindowAdapter()
         {
@@ -98,6 +103,7 @@ public class LogViewer
                 try
                 {
                     savePreferences();
+                    Debug.printStatistics();
                 }
                 catch ( IOException e1 )
                 {
@@ -107,18 +113,17 @@ public class LogViewer
         });
         logContainer = createLogfilesContainer();
 
-        JPanel content = new JPanel();
+        content = new JPanel();
         content.setLayout(new BorderLayout());
 
         content.add(logContainer.getComponent(), BorderLayout.CENTER);
         content.add(createToolbar(), BorderLayout.NORTH);
 
-        mainFrame.setSize(1024, 768);
         mainFrame.getContentPane().add(content, BorderLayout.CENTER);
+        mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        mainFrame.setVisible(true);
 
         loadPreferences();
-
-        mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private void loadLogfile(String path)
