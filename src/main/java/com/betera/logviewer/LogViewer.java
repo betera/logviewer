@@ -7,6 +7,7 @@ import com.betera.logviewer.file.column.LogfileParser;
 import com.betera.logviewer.file.highlight.HighlightEntry;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.action.OpenFileAction;
+import com.betera.logviewer.ui.action.RunMavenAction;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -21,14 +22,19 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -171,10 +177,43 @@ public class LogViewer
         return followTailCheckbox;
     }
 
+    private JComponent createMavenToolbar()
+    {
+        JToolBar tb = new JToolBar();
+        tb.setBorderPainted(true);
+        tb.setBorder(BorderFactory.createTitledBorder("Maven"));
+        tb.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 4));
+        tb.setFloatable(false);
+        JComboBox projCB = new JComboBox();
+        projCB.addItem("PRODMGMT");
+        projCB.addItem("PLATFORM");
+        tb.add(projCB);
+
+        JComboBox goalCB = new JComboBox();
+        goalCB.addItem("test");
+        goalCB.addItem("compile");
+        goalCB.addItem("install");
+        tb.add(goalCB);
+
+        tb.add(new JCheckBox("Skip Tests"));
+        tb.add(new JCheckBox("Profile:"));
+        tb.add(new JTextField("gwt-debug-firefox"));
+        tb.add(new JLabel("Deploy to:"));
+
+        JComboBox deployCB = new JComboBox();
+        deployCB.addItem("EMES");
+        deployCB.addItem("test732");
+        tb.add(deployCB);
+
+        tb.add(new RunMavenAction());
+
+        return tb;
+    }
+
     private JToolBar createToolbar()
     {
         JToolBar toolbar = new JToolBar();
-        toolbar.setLayout(new FlowLayout(FlowLayout.LEFT, 2, 2));
+        toolbar.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 4));
         toolbar.setSize(new Dimension(200, 48));
         toolbar.setFloatable(false);
         toolbar.add(new OpenFileAction(logContainer));
@@ -191,6 +230,7 @@ public class LogViewer
         });
         toolbar.add(createSeparator());
         toolbar.add(followTailCheckbox);
+        toolbar.add(createMavenToolbar());
         return toolbar;
     }
 
