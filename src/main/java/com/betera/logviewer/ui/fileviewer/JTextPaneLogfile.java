@@ -17,12 +17,14 @@ import com.betera.logviewer.ui.bookmark.DefaultBookmark;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -61,6 +63,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.JViewport;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -430,8 +433,40 @@ public class JTextPaneLogfile
     {
         textPane.setCaretPosition(offset);
         docTable.getSelectionModel().setSelectionInterval(row + 1, row + 1);
-        docTable.scrollRowToVisible(row);
+        scrollToVisible(row, 0);
         mouseClicked(null);
+    }
+
+    private void scrollToVisible(int rowIndex, int vColIndex)
+    {
+        JTable table = docTable;
+        if ( !(table.getParent() instanceof JViewport) )
+        {
+            return;
+        }
+        if ( table.getRowCount() < 1 )
+        {
+            return;
+        }
+        JViewport viewport = (JViewport) table.getParent();
+        Dimension dim = viewport.getExtentSize();
+        Dimension dimOne = new Dimension(0, 0);
+
+        Rectangle rect = table.getCellRect(rowIndex, vColIndex, true);
+        Rectangle rectOne;
+        if ( rowIndex + 1 < table.getRowCount() )
+        {
+            if ( vColIndex + 1 < table.getColumnCount() )
+            {
+                vColIndex++;
+            }
+            rectOne = table.getCellRect(rowIndex + 1, vColIndex, true);
+            dimOne.width = rectOne.x - rect.x;
+            dimOne.height = rectOne.y - rect.y;
+        }
+
+        rect.setLocation(rect.x + dim.width - dimOne.width, rect.y + dim.height - dimOne.height);
+        table.scrollRectToVisible(rect);
     }
 
     private void setStyle(HighlightEntry entry, int start, int end)
