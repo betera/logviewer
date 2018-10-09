@@ -24,7 +24,7 @@ public class Debug
             return;
         }
         Debug.text = text;
-        startTime = System.currentTimeMillis();
+        startTime = System.nanoTime();
     }
 
     public static void end()
@@ -33,13 +33,13 @@ public class Debug
         {
             return;
         }
-        endTime = System.currentTimeMillis();
+        endTime = System.nanoTime();
         if ( !map.containsKey(text) )
         {
             map.put(text, 0);
         }
         map.put(text, map.get(text) + 1);
-        System.out.println("Debug[" + text + "] -> " + (endTime - startTime));
+        System.out.println("Debug[" + text + "] -> " + (((endTime - startTime) / 1000.0)));
     }
 
     public static void printStatistics()

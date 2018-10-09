@@ -86,7 +86,7 @@ public class TabBasedLogfilesContainer
         component.setTabComponentAt(component.getTabCount() - 1, new LogfileTab(logfile));
         logfileMap.put(logfile.getName(), logfile);
         logfile.addLogfileStateChangedListener(this);
-
+        focusLogfile(logfile);
     }
 
     public boolean isLogfileFocused(Logfile logfile)

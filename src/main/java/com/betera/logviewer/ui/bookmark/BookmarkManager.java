@@ -31,6 +31,7 @@ public class BookmarkManager
     private JXTree tree;
     private DefaultMutableTreeNode rootNode;
     private Logfile logfile;
+    private boolean inPopulate = false;
 
     public BookmarkManager(Logfile logfile)
     {
@@ -44,12 +45,17 @@ public class BookmarkManager
             @Override
             public void valueChanged(TreeSelectionEvent e)
             {
+                if ( inPopulate )
+                {
+                    return;
+                }
+
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode) tree.getLastSelectedPathComponent();
 
                 if ( node instanceof LogBookmark )
                 {
                     LogBookmark bookmark = (LogBookmark) node;
-                    logfile.scrollTo(bookmark.getOffset(), bookmark.getRow());
+                    logfile.scrollTo(bookmark.getOffset(), bookmark.getRow(), true);
                 }
             }
         };
@@ -98,11 +104,13 @@ public class BookmarkManager
     {
         if ( logfile.equals(bookmark.getLogfile()) )
         {
+            inPopulate = true;
             DefaultMutableTreeNode child = (DefaultMutableTreeNode) bookmark;
             rootNode.add(child);
             ((DefaultTreeModel) tree.getModel()).reload(rootNode);
             tree.expandPath(new TreePath(rootNode.getPath()));
             tree.setSelectionPath(new TreePath(child.getPath()));
+            inPopulate = false;
             return;
         }
 

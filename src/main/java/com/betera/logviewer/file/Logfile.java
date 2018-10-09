@@ -31,5 +31,5 @@ public interface Logfile
 
     String toString();
 
-    void scrollTo(int offset, int row);
+    void scrollTo(int offset, int row, boolean setSelection);
 }

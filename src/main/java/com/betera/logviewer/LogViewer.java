@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -85,8 +87,10 @@ public class LogViewer
 
     public static void handleException(Exception exc)
     {
-        JOptionPane.showMessageDialog(null, "ERROR: " + exc.getMessage());
-        exc.printStackTrace(System.err); // NOSONAR
+        StringWriter sOut = new StringWriter();
+        PrintWriter out = new PrintWriter(sOut);
+        exc.printStackTrace(out); // NOSONAR
+        JOptionPane.showMessageDialog(null, "ERROR: " + sOut.toString());
     }
 
     public List<String> getRecentFiles()
@@ -143,6 +147,7 @@ public class LogViewer
 
         mainFrame.setJMenuBar(createMenuBar());
         mainFrame.getContentPane().add(content, BorderLayout.CENTER);
+        mainFrame.setSize(new Dimension(1024, 768));
         mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         mainFrame.setVisible(true);
 
@@ -178,11 +183,9 @@ public class LogViewer
 
         for ( int i = insertPoint - 1; i >= 1; i-- )
         {
-            JMenuItem item = menu.getItem(i);
             menu.remove(i);
         }
 
-        String fileName = null;
         for ( int i = 0; i < getRecentFiles().size(); i++ )
         {
             final String file = getRecentFiles().get(i);
@@ -228,19 +231,21 @@ public class LogViewer
         Properties pref = new Properties();
         pref.load(new FileReader("preferences.config"));
 
-        String recentFiles = pref.getProperty("recentFiles", "");
-        for ( String recentFile : recentFiles.split(",") )
+        String recentFilesCSV = pref.getProperty("recentFiles", "");
+        for ( String recentFile : recentFilesCSV.split(",") )
         {
-            if ( !recentFile.isEmpty() && new File(recentFile).exists() )
+            if ( !recentFile.isEmpty() && new File(recentFile).exists() && !getRecentFiles().contains(recentFile) )
             {
-                if ( !getRecentFiles().contains(recentFile) )
-                {
-                    getRecentFiles().add(recentFile);
-                }
+                getRecentFiles().add(recentFile);
             }
         }
 
         updateRecentFilesMenu();
+        boolean followTail = "true".equalsIgnoreCase(pref.get(PROP_FOLLOW_TAIL) + "");
+        followTailCheckbox.setSelected(followTail);
+        logContainer.updateFollowTailCheckbox(followTail, null);
+
+        MavenManager.init();
 
         int i = 0;
         String logfilePath = pref.getProperty(PROP_LOGFILES + "." + i);
@@ -250,11 +255,6 @@ public class LogViewer
             logfilePath = pref.getProperty(PROP_LOGFILES + "." + (++i));
         }
 
-        boolean followTail = "true".equalsIgnoreCase(pref.get(PROP_FOLLOW_TAIL) + "");
-        followTailCheckbox.setSelected(followTail);
-        logContainer.updateFollowTailCheckbox(followTail, null);
-
-        MavenManager.init();
     }
 
     private void savePreferences()
@@ -293,11 +293,10 @@ public class LogViewer
     private JComponent createMavenToolbar()
     {
         JToolBar tb = new JToolBar();
-        tb.setBorderPainted(true);
-        tb.setBorder(BorderFactory.createTitledBorder("Maven"));
         tb.setLayout(new FlowLayout(FlowLayout.LEADING, 8, 2));
+        tb.setBorderPainted(true);
+        tb.setBorder(BorderFactory.createEtchedBorder());
         tb.setFloatable(false);
-
         tb.add(MavenManager.getProjectComboBox());
         tb.add(createSeparator());
         tb.add(MavenManager.getDoCleanCheckBox());
