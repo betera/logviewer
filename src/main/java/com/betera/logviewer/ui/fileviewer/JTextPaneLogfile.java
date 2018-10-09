@@ -319,6 +319,7 @@ public class JTextPaneLogfile
                 }
                 else
                 {
+                    docTable.packAll();
                     scrollPane.setViewportView(docTable);
                     putValue(Action.SMALL_ICON, textPaneIcon);
                 }
@@ -600,6 +601,7 @@ public class JTextPaneLogfile
             public void run()
             {
                 readFile();
+                SwingUtilities.invokeLater(() -> docTable.packAll());
 
                 try
                 {
@@ -621,7 +623,6 @@ public class JTextPaneLogfile
                             {
                                 continue;
                             }
-
                             Path path = (Path) event.context();
                             if ( !path.toFile().getName().equals(file.getName()) )
                             {

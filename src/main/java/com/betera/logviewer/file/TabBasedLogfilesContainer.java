@@ -103,6 +103,16 @@ public class TabBasedLogfilesContainer
         return false;
     }
 
+    @Override
+    public void focusLogfile(Logfile aLogfile)
+    {
+        int index = getIndexForLogfile(aLogfile);
+        if ( index != 0 )
+        {
+            component.setSelectedIndex(index);
+        }
+    }
+
     private LogfileTab getTabForLogfile(Logfile logfile)
     {
         for ( int i = 0; i < component.getTabCount(); i++ )

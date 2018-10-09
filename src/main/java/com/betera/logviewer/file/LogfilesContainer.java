@@ -21,4 +21,6 @@ public interface LogfilesContainer
 
     boolean isLogfileFocused(Logfile aLogfile);
 
+    void focusLogfile(Logfile aLogfile);
+
 }

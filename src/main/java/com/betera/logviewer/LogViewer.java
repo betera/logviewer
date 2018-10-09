@@ -7,7 +7,7 @@ import com.betera.logviewer.file.column.LogfileParser;
 import com.betera.logviewer.file.highlight.HighlightEntry;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.action.OpenFileAction;
-import com.betera.logviewer.ui.action.RunMavenAction;
+import com.betera.logviewer.ui.maven.MavenManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -25,7 +25,6 @@ import java.util.Properties;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -34,7 +33,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -154,6 +152,8 @@ public class LogViewer
         boolean followTail = Boolean.TRUE.equals(pref.get(PROP_FOLLOW_TAIL) + "");
         followTailCheckbox.setSelected(followTail);
         logContainer.updateFollowTailCheckbox(followTail, null);
+
+        MavenManager.init();
     }
 
     private void savePreferences()
@@ -182,30 +182,25 @@ public class LogViewer
         JToolBar tb = new JToolBar();
         tb.setBorderPainted(true);
         tb.setBorder(BorderFactory.createTitledBorder("Maven"));
-        tb.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 4));
+        tb.setLayout(new FlowLayout(FlowLayout.LEADING, 8, 2));
         tb.setFloatable(false);
-        JComboBox projCB = new JComboBox();
-        projCB.addItem("PRODMGMT");
-        projCB.addItem("PLATFORM");
-        tb.add(projCB);
 
-        JComboBox goalCB = new JComboBox();
-        goalCB.addItem("test");
-        goalCB.addItem("compile");
-        goalCB.addItem("install");
-        tb.add(goalCB);
-
-        tb.add(new JCheckBox("Skip Tests"));
-        tb.add(new JCheckBox("Profile:"));
-        tb.add(new JTextField("gwt-debug-firefox"));
+        tb.add(MavenManager.getProjectComboBox());
+        tb.add(createSeparator());
+        tb.add(MavenManager.getDoCleanCheckBox());
+        tb.add(new JLabel("Goal:"));
+        tb.add(MavenManager.getGoalComboBox());
+        tb.add(createSeparator());
+        tb.add(MavenManager.getForceUpdateComboBox());
+        tb.add(MavenManager.getSkipTestsCheckBox());
+        tb.add(MavenManager.getUseProfileCheckBox());
+        tb.add(MavenManager.getProfileTextField());
+        tb.add(createSeparator());
         tb.add(new JLabel("Deploy to:"));
+        tb.add(MavenManager.getDeploymentComboBox());
+        tb.add(createSeparator());
 
-        JComboBox deployCB = new JComboBox();
-        deployCB.addItem("EMES");
-        deployCB.addItem("test732");
-        tb.add(deployCB);
-
-        tb.add(new RunMavenAction());
+        tb.add(MavenManager.getAction(logContainer));
 
         return tb;
     }
@@ -237,7 +232,7 @@ public class LogViewer
     private JSeparator createSeparator()
     {
         JSeparator sep = new JSeparator(JSeparator.VERTICAL);
-        sep.setPreferredSize(new Dimension(2, 16));
+        sep.setPreferredSize(new Dimension(4, 16));
         return sep;
     }
 
