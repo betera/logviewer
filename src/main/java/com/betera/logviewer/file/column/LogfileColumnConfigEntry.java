@@ -1,5 +1,7 @@
 package com.betera.logviewer.file.column;
 
+import com.betera.logviewer.LogViewer;
+
 public class LogfileColumnConfigEntry
 {
 
@@ -35,7 +37,7 @@ public class LogfileColumnConfigEntry
         }
         catch ( InstantiationException | IllegalAccessException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
         return null;
     }

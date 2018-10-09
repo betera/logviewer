@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui.action;
 
+import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.LogfilesContainer;
 import java.awt.event.ActionEvent;
 import java.io.File;
@@ -13,16 +14,22 @@ public class OpenFileAction
 
     LogfilesContainer container;
 
-    public OpenFileAction(LogfilesContainer container)
+    LogViewer logViewer;
+
+    public OpenFileAction(LogViewer logViewer, LogfilesContainer container)
     {
-        super("", new ImageIcon("./images/open.png"));
+        super("Open file...", new ImageIcon("./images/open.png"));
         this.container = container;
+        this.logViewer = logViewer;
     }
 
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        JFileChooser openFileDialog = new JFileChooser();
+        String path = logViewer.getRecentFiles().size() > 0 ? logViewer.getRecentFiles().get(
+                logViewer.getRecentFiles().size() - 1) : "";
+
+        JFileChooser openFileDialog = new JFileChooser(path);
 
         openFileDialog.setFileSelectionMode(JFileChooser.FILES_ONLY);
         openFileDialog.setMultiSelectionEnabled(true);

@@ -1,6 +1,7 @@
 package com.betera.logviewer.ui.fileviewer;
 
 import com.betera.logviewer.Debug;
+import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.LogfileConfiguration;
 import com.betera.logviewer.file.LogfileStateChangedListener;
@@ -26,21 +27,16 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchEvent.Kind;
+import java.nio.charset.Charset;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
@@ -85,30 +81,29 @@ import javax.swing.text.StyledDocument;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.View;
 import javax.swing.text.ViewFactory;
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListener;
+import org.apache.commons.io.input.TailerListenerAdapter;
 import org.jdesktop.swingx.JXTable;
 import org.jdesktop.swingx.table.DefaultTableColumnModelExt;
 
 public class JTextPaneLogfile
-        implements Logfile, MouseListener, TableCellRenderer
+        extends MouseAdapter
+        implements Logfile, TableCellRenderer
 {
 
-    private Action selectLine;
     private File file;
     private JScrollPane scrollPane;
     private JTextPane textPane;
     private LogfileConfiguration config;
-    private Thread readerThread;
-    private boolean disposed;
     private String newLine;
     private StyledDocument doc;
-    private boolean scrollListenerEnabled = true;
     private int lastScrollPosition;
 
     private LinePainter selectPainter = null;
     private Object selectHighlightInfo;
     private boolean followTail;
     private Color selectionColor;
-    private long oldLength;
     private JPanel toolsPanel;
     private LogfilesContainer container;
     private BookmarkManager bookmarkManager;
@@ -131,7 +126,6 @@ public class JTextPaneLogfile
         listener = new ArrayList<>();
 
         file = aFile;
-        disposed = false;
         followTail = true;
         this.container = container;
         this.config = config;
@@ -151,7 +145,7 @@ public class JTextPaneLogfile
 
     private AdjustmentListener createScrollListener()
     {
-        return new AdjustmentListener()
+        return new AdjustmentListener() // NOSONAR
         {
 
             @Override
@@ -181,7 +175,7 @@ public class JTextPaneLogfile
 
     private void initReaderThread()
     {
-        readerThread = new Thread(createReaderThreadRunnable());
+        Thread readerThread = new Thread(createReaderThreadRunnable());
         readerThread.setDaemon(true);
         readerThread.start();
     }
@@ -224,8 +218,8 @@ public class JTextPaneLogfile
         toolsPanel.setLayout(new BorderLayout());
         toolsPanel.add(toolsToolbar, BorderLayout.EAST);
         toolsPanel.add(taskContainer, BorderLayout.CENTER);
-        createToolWindowButton(toolsToolbar, taskContainer, bookmarkManager.getComponent(), "Bookmarks");
-        createToolWindowButton(toolsToolbar, taskContainer, new JPanel(), "Test");
+        createToolWindowButton(taskContainer, bookmarkManager.getComponent(), "Bookmarks");
+        createToolWindowButton(taskContainer, new JPanel(), "Test");
         toolsToolbar.setFloatable(false);
         toolsToolbar.setBorder(BorderFactory.createRaisedSoftBevelBorder());
         taskContainer.add(bookmarkManager.getComponent());
@@ -319,7 +313,6 @@ public class JTextPaneLogfile
                 }
                 else
                 {
-                    docTable.packAll();
                     scrollPane.setViewportView(docTable);
                     putValue(Action.SMALL_ICON, textPaneIcon);
                 }
@@ -344,7 +337,12 @@ public class JTextPaneLogfile
                     docTable.setHorizontalScrollEnabled(false);
                     putValue(Action.SMALL_ICON, lineWrapOffIcon);
                 }
-                docTable.repaint();
+                if ( followTail )
+                {
+                    SwingUtilities.invokeLater(() -> {
+                        scrollToEnd();
+                    });
+                }
             }
         });
         return logRootToolBar;
@@ -365,7 +363,6 @@ public class JTextPaneLogfile
         }
 
         String[] cols = new String[1 + columnConfig.getEntries().length];
-        boolean[] hidden = new boolean[cols.length];
         cols[0] = "Line";
         for ( int i = 0; i < columnConfig.getEntries().length; i++ )
         {
@@ -390,22 +387,17 @@ public class JTextPaneLogfile
         }
     }
 
-    private void createToolWindowButton(JToolBar toolBar, JPanel container, JComponent aComp, String aTitle)
+    private void createToolWindowButton(JPanel container, JComponent aComp, String aTitle)
     {
 
         JToggleButton btn = new JVerticalButton();
         btn.setText(aTitle);
         aComp.setBorder(new EmptyBorder(1, 1, 1, 1));
-        btn.addActionListener(new ActionListener()
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                container.removeAll();
-                container.add(aComp, BorderLayout.CENTER);
-                container.revalidate();
-                container.repaint();
-            }
+        btn.addActionListener(e -> {
+            container.removeAll();
+            container.add(aComp, BorderLayout.CENTER);
+            container.revalidate();
+            container.repaint();
         });
         btn.setBorderPainted(true);
         btn.setMargin(new Insets(4, 4, 4, 4));
@@ -474,7 +466,6 @@ public class JTextPaneLogfile
     {
         Font font = entry.getFont();
         Color c = entry.getForegroundColor();
-        Color bgColor = entry.getBackgroundColor();
 
         MutableAttributeSet attrs = textPane.getInputAttributes();
         if ( font != null )
@@ -548,8 +539,6 @@ public class JTextPaneLogfile
         listener.clear();
         listener = null;
 
-        disposed = true;
-
         if ( register != null )
         {
             register.cancel();
@@ -559,7 +548,7 @@ public class JTextPaneLogfile
             }
             catch ( IOException e )
             {
-                e.printStackTrace();
+                LogViewer.handleException(e);
             }
         }
     }
@@ -590,84 +579,16 @@ public class JTextPaneLogfile
     @Override
     public void dispose()
     {
-        disposed = true;
+        // nothing
     }
 
     private Runnable createReaderThreadRunnable()
     {
-        return new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                readFile();
-                SwingUtilities.invokeLater(() -> docTable.packAll());
+        return () -> {
+            readFileFully();
+            SwingUtilities.invokeLater(() -> docTable.packAll());
 
-                try
-                {
-                    watcher = FileSystems.getDefault().newWatchService();
-                    register = file.getParentFile().toPath().register(watcher,
-                                                                      StandardWatchEventKinds.ENTRY_MODIFY,
-                                                                      StandardWatchEventKinds.ENTRY_DELETE,
-                                                                      StandardWatchEventKinds.ENTRY_CREATE);
-
-                    while ( !disposed )
-                    {
-                        WatchKey poll = watcher.take();
-
-                        boolean fileChanged = false;
-                        for ( WatchEvent event : poll.pollEvents() )
-                        {
-                            Kind kind = event.kind();
-                            if ( kind.equals(StandardWatchEventKinds.OVERFLOW) )
-                            {
-                                continue;
-                            }
-                            Path path = (Path) event.context();
-                            if ( !path.toFile().getName().equals(file.getName()) )
-                            {
-                                continue;
-                            }
-
-                            if ( kind.equals(StandardWatchEventKinds.ENTRY_DELETE) )
-                            {
-                                SwingUtilities.invokeLater(() -> {
-                                    clearModel();
-                                    oldLength = 0;
-                                });
-                                fileChanged = true;
-                            }
-                            else if ( kind.equals(StandardWatchEventKinds.ENTRY_CREATE) )
-                            {
-                                SwingUtilities.invokeLater(() -> {
-                                    clearModel();
-                                    readFile();
-                                });
-                                fileChanged = true;
-                            }
-                            else if ( kind.equals(StandardWatchEventKinds.ENTRY_MODIFY) )
-                            {
-                                SwingUtilities.invokeLater(() -> {
-                                    long newLength = file.length();
-                                    if ( newLength < oldLength )
-                                    {
-                                        clearModel();
-                                        oldLength = 0;
-                                    }
-                                    readFile();
-                                });
-                                fileChanged = true;
-                            }
-                        }
-
-                        poll.reset();
-                    }
-                }
-                catch ( IOException | InterruptedException e )
-                {
-                    e.printStackTrace();
-                }
-            }
+            Tailer.create(file, Charset.defaultCharset(), createTailListener(), 250, true, true, 16384);
         };
     }
 
@@ -679,7 +600,7 @@ public class JTextPaneLogfile
         }
         catch ( BadLocationException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
         ((DefaultTableModel) docTable.getModel()).setRowCount(0);
     }
@@ -688,19 +609,17 @@ public class JTextPaneLogfile
     {
         if ( scrollPane.isVisible() )
         {
-            JScrollBar vsb = scrollPane.getVerticalScrollBar();
-            vsb.setValue(vsb.getMaximum() + vsb.getModel().getExtent());
             textPane.setCaretPosition(doc.getLength());
-            docTable.scrollRowToVisible(docTable.getRowCount());
+//            docTable.scrollRowToVisible(docTable.getRowCount());
+            JScrollBar vsb = scrollPane.getVerticalScrollBar();
+            vsb.setValue(Integer.MAX_VALUE);
         }
     }
 
-    private void readFile()
+    private void readFileFully()
     {
-        scrollListenerEnabled = false;
         try (LineNumberReader lnr = new LineNumberReader(new FileReader(file)))
         {
-            lnr.skip(oldLength);
             String line = lnr.readLine();
             while ( line != null )
             {
@@ -710,18 +629,16 @@ public class JTextPaneLogfile
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
         finally
         {
-            oldLength = file.length();
             SwingUtilities.invokeLater(() -> {
                 fireContentChanged(true);
                 if ( followTail )
                 {
                     scrollToEnd();
                 }
-                scrollListenerEnabled = true;
             });
         }
     }
@@ -733,6 +650,31 @@ public class JTextPaneLogfile
             newLine = System.getProperty("line.separator");
         }
         return newLine;
+    }
+
+    private TailerListener createTailListener()
+    {
+        return new TailerListenerAdapter()
+        {
+            @Override
+            public void fileRotated()
+            {
+                clearModel();
+                readFileFully();
+            }
+
+            @Override
+            public void handle(String s)
+            {
+                processLine(s);
+            }
+
+            @Override
+            public void handle(Exception e)
+            {
+                LogViewer.handleException(e);
+            }
+        };
     }
 
     private void processLine(String line)
@@ -773,7 +715,7 @@ public class JTextPaneLogfile
             }
             catch ( BadLocationException e )
             {
-                e.printStackTrace();
+                LogViewer.handleException(e);
             }
         });
     }
@@ -800,14 +742,14 @@ public class JTextPaneLogfile
         }
         catch ( BadLocationException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
         return -1;
     }
 
     private Object addHighlightToLine(int offset, Color color, boolean isMaster)
     {
-        int start = getNewlineBefore(offset);
+        int start = getNewlineBefore(offset + 1);
         if ( start < 0 )
         {
             return null;
@@ -829,7 +771,7 @@ public class JTextPaneLogfile
         }
         catch ( BadLocationException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
         return null;
     }
@@ -843,30 +785,6 @@ public class JTextPaneLogfile
         }
         selectHighlightInfo = addHighlightToLine(textPane.getCaretPosition(), selectionColor, true);
         textPane.repaint();
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e)
-    {
-
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e)
-    {
-
-    }
-
-    @Override
-    public void mouseEntered(MouseEvent e)
-    {
-
-    }
-
-    @Override
-    public void mouseExited(MouseEvent e)
-    {
-
     }
 
     @Override
@@ -903,17 +821,20 @@ public class JTextPaneLogfile
         label.setLineWrap(lineWrap);
 
         FontMetrics fontMetrics = label.getFontMetrics(label.getFont());
+
         int newHeight = fontMetrics.getHeight() + 3;
         if ( label.getLineWrap() )
         {
             int fontHeight = fontMetrics.getHeight();
-            int textLength = label.getText().length();
 
             Rectangle2D stringBounds = fontMetrics.getStringBounds(label.getText(), label.getGraphics());
             int textWidth = (int) ((stringBounds.getWidth() + 10) * 1.05);
             int colWidth = table.getColumnModel().getColumn(column).getWidth();
             newHeight = (textWidth / colWidth + 1) * (fontHeight + 1);
-            newHeight = Math.max(table.getRowHeight(row), newHeight);
+            if ( column > 0 )
+            {
+                newHeight = Math.max(table.getRowHeight(row), newHeight);
+            }
         }
         table.setRowHeight(row, newHeight);
 
@@ -922,7 +843,7 @@ public class JTextPaneLogfile
         return label;
     }
 
-    private class CustomSelectionPaintLabel
+    private class CustomSelectionPaintLabel // NOSONAR
             extends JTextArea
     {
 
@@ -982,8 +903,9 @@ public class JTextPaneLogfile
     private class WrapEditorKit
             extends StyledEditorKit
     {
-        ViewFactory defaultFactory = new WrapColumnFactory();
+        transient ViewFactory defaultFactory = new WrapColumnFactory();
 
+        @Override
         public ViewFactory getViewFactory()
         {
             return defaultFactory;
@@ -1033,6 +955,7 @@ public class JTextPaneLogfile
             super(elem);
         }
 
+        @Override
         public float getMinimumSpan(int axis)
         {
             switch ( axis )

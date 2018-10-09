@@ -1,5 +1,6 @@
 package com.betera.logviewer.file.column;
 
+import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.Logfile;
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -104,7 +105,7 @@ public class LogfileParser
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
 
     }

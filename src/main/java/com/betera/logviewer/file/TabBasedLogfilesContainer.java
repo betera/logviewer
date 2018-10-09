@@ -72,6 +72,11 @@ public class TabBasedLogfilesContainer
         return component;
     }
 
+    public void addRecentFile(String filePath)
+    {
+
+    }
+
     @Override
     public void addFile(File file)
     {
@@ -161,6 +166,7 @@ public class TabBasedLogfilesContainer
         logfiles.remove(file);
         logfileMap.put(file.getName(), null);
         file.destroy();
+        logViewer.addRecentFile(file.getAbsolutePath());
     }
 
     public void contentChanged(boolean hasChanges, Logfile logfile)

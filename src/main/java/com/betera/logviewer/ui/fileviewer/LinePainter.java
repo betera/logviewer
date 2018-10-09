@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui.fileviewer;
 
+import com.betera.logviewer.LogViewer;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Rectangle;
@@ -76,7 +77,7 @@ public class LinePainter
         }
         catch ( BadLocationException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
         return -1;
     }

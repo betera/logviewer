@@ -1,9 +1,12 @@
 package com.betera.logviewer.ui.maven;
 
+import com.betera.logviewer.LogViewer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -107,6 +110,47 @@ public class MavenConfigManager
             }
         }
         return null;
+    }
+
+    public static void writeConfig()
+    {
+        File f = new File("maven.config");
+        if ( f.exists() )
+        {
+            f.delete();
+        }
+
+        try (PrintWriter out = new PrintWriter(new FileWriter(f)))
+        {
+            ;
+            for ( MavenProject proj : getProjects() )
+            {
+                out.println("[Project " + proj.getProjectName() + "]");
+                out.println("dir=" + proj.getRootDir());
+                out.println("ear=" + proj.getEarPath());
+            }
+            for ( MavenDeployment depl : getDeployments() )
+            {
+                out.println("[Deploy " + depl.getDeploymentName() + "]");
+                out.println("dir=" + depl.getDeploymentPath());
+            }
+
+            out.println("[Default]");
+            out.println("skipTests=" + MavenManager.getSkipTestsCheckBox().isSelected());
+            out.println("clean=" + MavenManager.getDoCleanCheckBox().isSelected());
+            out.println("useProfile=" + MavenManager.getUseProfileCheckBox().isSelected());
+            out.println("forceUpdate=" + MavenManager.getForceUpdateComboBox().isSelected());
+            out.println("deploy=" + ((MavenDeployment) MavenManager.getDeploymentComboBox()
+                    .getSelectedItem()).getDeploymentName());
+            out.println(
+                    "project=" + ((MavenProject) MavenManager.getProjectComboBox().getSelectedItem()).getProjectName());
+            out.println("goal=" + MavenManager.getGoalComboBox().getSelectedItem());
+            out.println("profile=" + MavenManager.getProfileTextField().getText());
+        }
+        catch ( IOException e )
+        {
+            LogViewer.handleException(e);
+        }
     }
 
     public static void readConfig()
@@ -221,7 +265,7 @@ public class MavenConfigManager
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
     }
 

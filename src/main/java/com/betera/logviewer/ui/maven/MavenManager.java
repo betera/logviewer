@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui.maven;
 
+import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.LogfilesContainer;
 import com.betera.logviewer.ui.action.RunMavenAction;
 import java.io.File;
@@ -175,7 +176,7 @@ public class MavenManager
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
+            LogViewer.handleException(e);
         }
     }
 
