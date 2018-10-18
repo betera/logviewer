@@ -1,5 +1,6 @@
 package com.betera.logviewer.file.column.parser;
 
+import com.betera.logviewer.file.column.LogfileColumnConfigEntry;
 import com.betera.logviewer.file.column.LogfileColumnParser;
 
 public class LogfileColumnStringMatchParser
@@ -7,19 +8,25 @@ public class LogfileColumnStringMatchParser
 {
 
     @Override
-    public String parse(String aLine, String... params)
+    public String parse(String aLine, LogfileColumnConfigEntry entry)
     {
-        String string = params[0];
+        String string = entry.getParams()[0];
         if ( string.equals("SPACE") )
         {
             string = " ";
         }
 
         int index = aLine.indexOf(string);
+        String ret = aLine;
         if ( index >= 0 )
         {
-            return aLine.substring(0, index + 1);
+            ret = aLine.substring(0, index + 1);
         }
-        return aLine;
+        if ( ret.length() > entry.getMaxColumnSize() )
+        {
+            ret = ret.substring(0, entry.getMaxColumnSize());
+        }
+
+        return ret;
     }
 }

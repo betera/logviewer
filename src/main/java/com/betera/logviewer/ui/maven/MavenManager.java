@@ -162,7 +162,7 @@ public class MavenManager
         envVars.add("MR_POM_DIR=" + rootDir);
         envVars.add("MR_STRING=" + params);
         envVars.add("MR_EAR_DIR=" + targetEarDir);
-        envVars.add("MR_PIPE= > c:\\projekte\\emes\\maven.log");
+//        envVars.add("MR_PIPE= > c:\\projekte\\emes\\maven.log");
 
         for ( Entry<String, String> env : System.getenv().entrySet() )
         {
@@ -171,7 +171,7 @@ public class MavenManager
 
         try
         {
-            Runtime.getRuntime().exec("cmd /c start /min \"\" mavenRunner.bat",
+            Runtime.getRuntime().exec("cmd /c start /min \"\" mavenRunner.bat ^> c:\\projekte\\emes\\maven.log",
                                       envVars.toArray(new String[envVars.size()]));
         }
         catch ( IOException e )

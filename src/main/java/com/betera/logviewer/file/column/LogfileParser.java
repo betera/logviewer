@@ -71,8 +71,11 @@ public class LogfileParser
                         }
                         else
                         {
+                            String maxColLen = line.substring(0, line.indexOf(' '));
+                            line = line.substring(maxColLen.length() + 1);
+
                             String isVis = line.substring(0, line.indexOf(' '));
-                            line = line.substring(isVis.length() + 1, line.length());
+                            line = line.substring(isVis.length() + 1);
 
                             int nextSpace = line.indexOf(' ');
                             String parserType = line;
@@ -84,8 +87,7 @@ public class LogfileParser
                                 params = line.trim().split(" ");
                             }
 
-                            entries.add(new LogfileColumnConfigEntry(columnName,
-                                                                     parserType,
+                            entries.add(new LogfileColumnConfigEntry(columnName, parserType, Integer.valueOf(maxColLen),
                                                                      "false".equals(isVis),
                                                                      params));
                         }
@@ -156,7 +158,7 @@ public class LogfileParser
         {
             for ( LogfileColumnConfigEntry entry : aConfig.getEntries() )
             {
-                String parsedLine = entry.getParser().parse(line, entry.getParams());
+                String parsedLine = entry.getParser().parse(line, entry);
                 if ( parsedLine.length() < line.length() )
                 {
                     line = line.substring(parsedLine.length(), line.length());

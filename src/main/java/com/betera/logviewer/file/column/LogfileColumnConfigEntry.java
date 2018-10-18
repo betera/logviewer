@@ -8,14 +8,30 @@ public class LogfileColumnConfigEntry
     private String columnName;
     private String entryType;
     private String[] params;
+    private int maxColumnSize;
     private boolean initiallyHidden;
 
-    public LogfileColumnConfigEntry(String aColumnName, String entryType, boolean initiallyHidden, String... params)
+    public LogfileColumnConfigEntry(String aColumnName,
+                                    String entryType,
+                                    int maxColumnSize,
+                                    boolean initiallyHidden,
+                                    String... params)
     {
         setColumnName(aColumnName);
         setEntryType(entryType);
         setInitiallyHidden(initiallyHidden);
+        setMaxColumnSize(maxColumnSize);
         setParams(params);
+    }
+
+    public int getMaxColumnSize()
+    {
+        return maxColumnSize > 0 ? maxColumnSize : 99999;
+    }
+
+    public void setMaxColumnSize(int maxColumnSize)
+    {
+        this.maxColumnSize = maxColumnSize;
     }
 
     public boolean isInitiallyHidden()

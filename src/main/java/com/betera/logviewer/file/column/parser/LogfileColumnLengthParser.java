@@ -1,21 +1,26 @@
 package com.betera.logviewer.file.column.parser;
 
+import com.betera.logviewer.file.column.LogfileColumnConfigEntry;
 import com.betera.logviewer.file.column.LogfileColumnParser;
 
 public class LogfileColumnLengthParser
         implements LogfileColumnParser
 {
     @Override
-    public String parse(String aLine, String... params)
+    public String parse(String aLine, LogfileColumnConfigEntry entry)
     {
-        int length = Integer.valueOf(params[0]);
+        String ret = aLine;
+        int length = Integer.valueOf(entry.getParams()[0]);
         if ( length <= aLine.length() )
         {
-            return aLine.substring(0, length);
+            ret = aLine.substring(0, length);
         }
-        else
+
+        if ( ret.length() > entry.getMaxColumnSize() )
         {
-            return aLine;
+            ret = ret.substring(0, entry.getMaxColumnSize());
         }
+
+        return ret;
     }
 }

@@ -1,6 +1,5 @@
 package com.betera.logviewer.ui.fileviewer;
 
-import com.betera.logviewer.Debug;
 import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.LogfileConfiguration;
@@ -18,6 +17,7 @@ import com.betera.logviewer.ui.bookmark.DefaultBookmark;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -29,10 +29,10 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
@@ -63,8 +63,8 @@ import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.SwingWorker;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
@@ -77,6 +77,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.BoxView;
 import javax.swing.text.ComponentView;
 import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.Element;
 import javax.swing.text.IconView;
 import javax.swing.text.LabelView;
@@ -126,6 +127,8 @@ public class JTextPaneLogfile
 
     private JLabel waitLabel;
     private boolean isTextView = true;
+    private JToolBar contextToolBar;
+    private JPanel leftTBPanel;
 
     public JTextPaneLogfile(LogfilesContainer container, File aFile, LogfileConfiguration config)
     {
@@ -150,23 +153,22 @@ public class JTextPaneLogfile
         initReaderThread();
     }
 
-    private AdjustmentListener createScrollListener()
+    private MouseWheelListener createScrollListener()
     {
-        return new AdjustmentListener() // NOSONAR
+        return new MouseWheelListener() // NOSONAR
         {
 
-            int lastValue = 0;
-
             @Override
-            public void adjustmentValueChanged(AdjustmentEvent e)
+            public void mouseWheelMoved(MouseWheelEvent e)
             {
-                Debug.start("Adjust Scrollbar");
+                boolean scrolledDown = e.getPreciseWheelRotation() > 0;
+
                 JScrollBar vsb = scrollPane.getVerticalScrollBar();
 
                 int value = vsb.getValue() + vsb.getModel().getExtent();
                 int max = vsb.getMaximum();
 
-                if ( lastValue < value )
+                if ( !scrolledDown )
                 {
                     if ( followTail )
                     {
@@ -174,7 +176,7 @@ public class JTextPaneLogfile
                     }
                     followTail = false;
                 }
-                else if ( lastValue > value )
+                else if ( value >= max )
                 {
                     if ( !followTail )
                     {
@@ -182,9 +184,8 @@ public class JTextPaneLogfile
                     }
                     followTail = true;
                 }
-                lastValue = value;
-                Debug.end();
             }
+
         };
     }
 
@@ -197,9 +198,17 @@ public class JTextPaneLogfile
 
     private void initSplitterAndScrollPane()
     {
-        scrollPane = new JScrollPane();
+        scrollPane = new JScrollPane()
+        {
+            public JScrollBar createVerticalScrollBar()
+            {
+                ScrollBar scrollBar = new ScrollBar(JScrollBar.VERTICAL);
+                return scrollBar;
+            }
+
+        };
         scrollPane.setViewportView(textPane);
-        scrollPane.getVerticalScrollBar().addAdjustmentListener(createScrollListener());
+        scrollPane.addMouseWheelListener(createScrollListener());
 
         JPanel logRoot = new JPanel();
         logRoot.setLayout(new BorderLayout());
@@ -244,6 +253,7 @@ public class JTextPaneLogfile
     {
         docTable = new JXTable();
         docTable.setSortable(false);
+        docTable.setGridColor(Color.lightGray);
         docTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         columnConfig = LogfileParser.findMatchingConfig(this);
         createTableModelFromColumnConfig();
@@ -258,31 +268,14 @@ public class JTextPaneLogfile
         selectPainter = new LinePainter(textPane, selectionColor, 0, null);
     }
 
-    private void initTextPane()
+    private DocumentListener createDocumentScrollListener()
     {
-        textPane = new JTextPane()
-        {
-            @Override
-            public void scrollRectToVisible(Rectangle aRect)
-            {
-                if ( followTail )
-                {
-                    super.scrollRectToVisible(aRect);
-                }
-            }
-        };
-        textPane.setBorder(BorderFactory.createEtchedBorder());
-        textPane.setEditable(false);
-        textPane.addMouseListener(this);
-        textPane.setEditorKit(new WrapEditorKit());
-        textPane.setBackground(HighlightManager.getDefaultEntry().getBackgroundColor());
-        doc = textPane.getStyledDocument();
-        doc.addDocumentListener(new DocumentListener()
+        return new DocumentListener()
         {
             @Override
             public void insertUpdate(DocumentEvent e)
             {
-                if ( followTail )
+                if ( followTail && textPane.getDocument().equals(doc) )
                 {
                     scrollToEnd();
                 }
@@ -299,24 +292,163 @@ public class JTextPaneLogfile
             {
 
             }
-        });
+        };
+    }
+
+    private void initTextPane()
+    {
+        textPane = new JTextPane()
+        {
+            @Override
+            public void scrollRectToVisible(Rectangle aRect)
+            {
+                if ( followTail )
+                {
+                    if ( aRect != null )
+                    {
+                        super.scrollRectToVisible(aRect);
+                    }
+                }
+            }
+        };
+        textPane.setBorder(BorderFactory.createEtchedBorder());
+        textPane.setEditable(false);
+        textPane.addMouseListener(this);
+        textPane.setEditorKit(new WrapEditorKit());
+        textPane.setBackground(HighlightManager.getDefaultEntry().getBackgroundColor());
+        doc = textPane.getStyledDocument();
+        doc.addDocumentListener(createDocumentScrollListener());
         textPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         textPane.setFont(new Font("Consolas", Font.PLAIN, 18));
 
     }
 
-    private JToolBar createLogfileToolbar()
+    private JToolBar createTextViewToolbar()
+    {
+        JToolBar tb = new JToolBar();
+        tb.setFloatable(false);
+
+        return tb;
+    }
+
+    private int getMaxWidthForColumn(TableColumn col)
+    {
+        for ( LogfileColumnConfigEntry entry : columnConfig.getEntries() )
+        {
+            if ( col.getIdentifier().equals(entry.getColumnName()) )
+            {
+                return entry.getMaxColumnSize();
+            }
+        }
+        return 0;
+    }
+
+    private JToolBar createTableViewToolbar()
+    {
+        JToolBar tb = new JToolBar();
+        tb.setFloatable(false);
+
+        tb.add(new AbstractAction("Pack table", new ImageIcon("./images/pack.png"))
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if ( lineWrap )
+                {
+                    docTable.setHorizontalScrollEnabled(true);
+                }
+                docTable.packAll();
+                if ( lineWrap )
+                {
+                    docTable.setHorizontalScrollEnabled(false);
+                }
+            }
+        });
+        Icon lineWrapOnIcon = new ImageIcon("./images/arrowDown.png");
+        Icon lineWrapOffIcon = new ImageIcon("./images/arrowUp.png");
+
+        tb.add(new AbstractAction("Toggle Line-Wrap", lineWrapOnIcon)
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                if ( lineWrap )
+                {
+                    lineWrap = false;
+                    docTable.setHorizontalScrollEnabled(true);
+                    putValue(Action.SMALL_ICON, lineWrapOnIcon);
+                }
+                else
+                {
+                    lineWrap = true;
+                    docTable.setHorizontalScrollEnabled(false);
+                    putValue(Action.SMALL_ICON, lineWrapOffIcon);
+                }
+                if ( followTail )
+                {
+                    scrollToEnd();
+                }
+            }
+        });
+
+        return tb;
+
+    }
+
+    private JToolBar createSharedToolbar()
     {
         final ImageIcon tableIcon = new ImageIcon("./images/table.png");
         final ImageIcon textPaneIcon = new ImageIcon("./images/textPane.png");
 
+        JToolBar tb = new JToolBar();
+        tb.setFloatable(false);
+
+        tb.add(new AbstractAction("Table view", new ImageIcon("./images/table.png"))
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                Component comp = scrollPane.getViewport().getView();
+                if ( comp instanceof JXTable )
+                {
+                    scrollPane.setViewportView(textPane);
+                    isTextView = true;
+                    leftTBPanel.remove(contextToolBar);
+                    contextToolBar = createTextViewToolbar();
+                    leftTBPanel.add(contextToolBar);
+                    putValue(Action.SMALL_ICON, tableIcon);
+                }
+                else
+                {
+                    scrollPane.setViewportView(docTable);
+                    isTextView = false;
+                    leftTBPanel.remove(contextToolBar);
+                    contextToolBar = createTableViewToolbar();
+                    leftTBPanel.add(contextToolBar);
+                    putValue(Action.SMALL_ICON, textPaneIcon);
+                }
+                leftTBPanel.revalidate();
+                leftTBPanel.repaint();
+            }
+        });
+
+        return tb;
+    }
+
+    private JToolBar createLogfileToolbar()
+    {
+        contextToolBar = createTextViewToolbar();
+
         JToolBar logRootToolBar = new JToolBar();
         logRootToolBar.setLayout(new BorderLayout());
-        JToolBar leftTB = new JToolBar();
-        leftTB.setFloatable(false);
         JToolBar rightTB = new JToolBar();
         rightTB.setFloatable(false);
-        logRootToolBar.add(leftTB, BorderLayout.CENTER);
+
+        leftTBPanel = new JPanel();
+        leftTBPanel.setLayout(new FlowLayout());
+        leftTBPanel.add(createSharedToolbar());
+        leftTBPanel.add(contextToolBar);
+        logRootToolBar.add(leftTBPanel, BorderLayout.WEST);
         logRootToolBar.add(rightTB, BorderLayout.EAST);
 
         Icon toolPanelOn = new ImageIcon("./images/arrowDown.png");
@@ -348,51 +480,6 @@ public class JTextPaneLogfile
         });
 
         logRootToolBar.setFloatable(false);
-        leftTB.add(new AbstractAction("Toggle view", new ImageIcon("./images/table.png"))
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                Component comp = scrollPane.getViewport().getView();
-                if ( comp instanceof JXTable )
-                {
-                    scrollPane.setViewportView(textPane);
-                    isTextView = true;
-                    putValue(Action.SMALL_ICON, tableIcon);
-                }
-                else
-                {
-                    scrollPane.setViewportView(docTable);
-                    isTextView = false;
-                    putValue(Action.SMALL_ICON, textPaneIcon);
-                }
-            }
-        });
-        Icon lineWrapOnIcon = new ImageIcon("./images/arrowDown.png");
-        Icon lineWrapOffIcon = new ImageIcon("./images/arrowUp.png");
-        leftTB.add(new AbstractAction("Toggle Line-Wrap", lineWrapOnIcon)
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                if ( lineWrap )
-                {
-                    lineWrap = false;
-                    docTable.setHorizontalScrollEnabled(true);
-                    putValue(Action.SMALL_ICON, lineWrapOnIcon);
-                }
-                else
-                {
-                    lineWrap = true;
-                    docTable.setHorizontalScrollEnabled(false);
-                    putValue(Action.SMALL_ICON, lineWrapOffIcon);
-                }
-                if ( followTail )
-                {
-                    scrollToEnd();
-                }
-            }
-        });
         return logRootToolBar;
     }
 
@@ -419,17 +506,24 @@ public class JTextPaneLogfile
 
         ((DefaultTableModel) docTable.getModel()).setColumnIdentifiers(cols);
         DefaultTableColumnModelExt mdl = (DefaultTableColumnModelExt) docTable.getColumnModel();
-
+        mdl.getColumnExt("Line").setMaxWidth(10 * 10);
         List<TableColumn> columns = mdl.getColumns(true);
         for ( TableColumn column : columns )
         {
             String identifier = (String) column.getIdentifier();
-            for ( LogfileColumnConfigEntry entry : columnConfig.getEntries() )
             {
-                if ( entry.getColumnName().equals(identifier) && entry.isInitiallyHidden() )
+                for ( LogfileColumnConfigEntry entry : columnConfig.getEntries() )
                 {
-                    mdl.getColumnExt(identifier).setVisible(false);
-                    break;
+                    if ( entry.getColumnName().equals(identifier) )
+                    {
+                        int maxWidth = entry.getMaxColumnSize() * 10;
+                        mdl.getColumnExt(identifier).setPreferredWidth(maxWidth);
+                        if ( entry.isInitiallyHidden() )
+                        {
+                            mdl.getColumnExt(identifier).setVisible(false);
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -472,16 +566,19 @@ public class JTextPaneLogfile
     @Override
     public void scrollTo(int offset, int row, boolean setSelection)
     {
-        if ( isTextView )
+        if ( isTextView && textPane.getDocument().equals(doc) )
         {
             textPane.setCaretPosition(offset);
             try
             {
-                textPane.scrollRectToVisible(textPane.modelToView(offset - 1));
+                if ( doc.getLength() > 0 )
+                {
+                    textPane.scrollRectToVisible(textPane.modelToView(offset - 1));
+                }
             }
             catch ( BadLocationException e )
             {
-                //LogViewer.handleException(e);
+                LogViewer.handleException(e);
             }
         }
         else
@@ -620,16 +717,8 @@ public class JTextPaneLogfile
         return () -> {
             try
             {
-                SwingUtilities.invokeAndWait(() -> {
-                    textPane.setEnabled(false);
-                    textPane.setLayout(new GridBagLayout());
-                    waitLabel = new JLabel("Please wait...");
-                    waitLabel.setOpaque(false);
-                    waitLabel.setFont(new Font("Segoe UI, Consolas, Arial", Font.BOLD, 32));
-                    textPane.add(waitLabel, new GridBagConstraints());
-                });
-                new ReadFileTask().execute();
-                SwingUtilities.invokeLater(() -> docTable.packAll());
+                readFileFully();
+                Tailer.create(file, Charset.defaultCharset(), createTailListener(), 500, true, true, 4096);
             }
             catch ( Exception e )
             {
@@ -640,6 +729,8 @@ public class JTextPaneLogfile
 
     private void clearModel()
     {
+        textPane.getHighlighter().removeAllHighlights();
+        bookmarkManager.deleteAllBookmarks();
         try
         {
             doc.remove(0, doc.getLength());
@@ -658,24 +749,47 @@ public class JTextPaneLogfile
 
     private void readFileFully()
     {
-        try (Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath())))
+        JLabel waitLabel = new JLabel("Please wait....");
+        try
         {
-            stream.forEach(this::processLine);
+            SwingUtilities.invokeAndWait(() -> {
+                clearModel();
+                textPane.setDocument(new DefaultStyledDocument());
+                textPane.setLayout(new BorderLayout());
+                waitLabel.setBackground(new Color(230, 230, 230));
+                waitLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                waitLabel.setOpaque(true);
+                waitLabel.setFont(new Font("Segoe UI, Arial", Font.BOLD, 36));
+                textPane.add(waitLabel, BorderLayout.CENTER);
+            });
         }
-        catch ( IOException e )
+        catch ( Exception e )
         {
-            LogViewer.handleException(e);
+            e.printStackTrace();
         }
-        finally
-        {
-            SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeLater(() -> {
+
+            try (Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath())))
+            {
+                stream.forEach(this::processLine);
+            }
+            catch ( IOException e )
+            {
+                LogViewer.handleException(e);
+            }
+            finally
+            {
+                textPane.remove(waitLabel);
+                textPane.setDocument(doc);
+                docTable.packAll();
+
                 fireContentChanged(true);
                 if ( followTail )
                 {
                     scrollToEnd();
                 }
-            });
-        }
+            }
+        });
     }
 
     private String nl()
@@ -698,7 +812,6 @@ public class JTextPaneLogfile
             {
                 try
                 {
-                    SwingUtilities.invokeAndWait(() -> clearModel());
                     readFileFully();
                 }
                 catch ( Exception e )
@@ -710,7 +823,10 @@ public class JTextPaneLogfile
             @Override
             public void handle(String s)
             {
-                processLine(s);
+                SwingUtilities.invokeLater(() -> {
+                    processLine(s);
+                    fireContentChanged(true);
+                });
             }
 
             @Override
@@ -723,45 +839,47 @@ public class JTextPaneLogfile
 
     private void processLine(final String line)
     {
-        SwingUtilities.invokeLater(() -> {
-            try
-            {
-                DefaultTableModel tableModel = ((DefaultTableModel) docTable.getModel());
-                int docLen = doc.getLength();
-                final int start = docLen;
-                String content = line + nl();
-                doc.insertString(docLen, content, null);
-                final int end = doc.getLength();
-                final HighlightEntry entry = HighlightManager.findHighlightEntry(line);
-                if ( entry != null )
-                {
-                    addHighlightToLine(start, entry.getBackgroundColor(), false);
-                    setStyle(entry, start, end);
-                    if ( entry.isAddBookmark() )
-                    {
-                        bookmarkManager.addBookmark(new DefaultBookmark(this,
-                                                                        start,
-                                                                        tableModel.getRowCount() - 1,
-                                                                        entry,
-                                                                        line));
-                    }
-                }
+        try
+        {
+            DefaultTableModel tableModel = ((DefaultTableModel) docTable.getModel());
+            int docLen = doc.getLength();
+            final int start = docLen;
+            StringBuilder builder = new StringBuilder();
+            builder.append(line);
+            builder.append(nl());
+            String content = builder.toString();
 
-                LogfileColumn[] columns = LogfileParser.parseLine(columnConfig, line);
-
-                Vector<CellInfos> vector = new Vector<>();
-                vector.add(new CellInfos(entry, (tableModel.getRowCount() + 1) + ""));
-                for ( LogfileColumn col : columns )
-                {
-                    vector.add(new CellInfos(entry, col.getContent()));
-                }
-                tableModel.addRow(vector);
-            }
-            catch ( BadLocationException e )
+            doc.insertString(docLen, content, null);
+            final int end = doc.getLength();
+            final HighlightEntry entry = HighlightManager.findHighlightEntry(line);
+            if ( entry != null )
             {
-                LogViewer.handleException(e);
+                addHighlightToLine(start, entry.getBackgroundColor(), false);
+                setStyle(entry, start, end);
+                if ( entry.isAddBookmark() )
+                {
+                    bookmarkManager.addBookmark(new DefaultBookmark(this,
+                                                                    start,
+                                                                    tableModel.getRowCount() - 1,
+                                                                    entry,
+                                                                    line));
+                }
             }
-        });
+
+            LogfileColumn[] columns = LogfileParser.parseLine(columnConfig, line);
+
+            Vector<CellInfos> vector = new Vector<>();
+            vector.add(new CellInfos(entry, (tableModel.getRowCount() + 1) + ""));
+            for ( LogfileColumn col : columns )
+            {
+                vector.add(new CellInfos(entry, col.getContent()));
+            }
+            tableModel.addRow(vector);
+        }
+        catch ( Exception e )
+        {
+            LogViewer.handleException(e);
+        }
     }
 
     private int getNewlineBefore(int offset)
@@ -771,7 +889,7 @@ public class JTextPaneLogfile
 
         try
         {
-            String text = textPane.getText(preOffset, offset - preOffset);
+            String text = doc.getText(preOffset, offset - preOffset);
             int lastIndex = text.lastIndexOf(nl());
             if ( lastIndex >= 0 )
             {
@@ -924,37 +1042,6 @@ public class JTextPaneLogfile
         label.setToolTipText(label.getText());
 
         return label;
-    }
-
-    protected class ReadFileTask
-            extends SwingWorker
-    {
-
-        @Override
-        protected Object doInBackground()
-                throws Exception
-        {
-            try (Stream<String> stream = Files.lines(Paths.get(file.getAbsolutePath())))
-            {
-                stream.forEach(JTextPaneLogfile.this::processLine);
-            }
-            catch ( IOException e )
-            {
-                LogViewer.handleException(e);
-            }
-            finally
-            {
-                return null;
-            }
-        }
-
-        @Override
-        protected void done()
-        {
-            textPane.remove(waitLabel);
-            textPane.setEnabled(true);
-            Tailer.create(file, Charset.defaultCharset(), createTailListener(), 500, true, true, 4096);
-        }
     }
 
     private class CustomSelectionPaintLabel // NOSONAR
