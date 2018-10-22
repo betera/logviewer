@@ -13,7 +13,7 @@ public class DeleteAllBookmarksAction
 
     public DeleteAllBookmarksAction(BookmarkManager bookmarkManager)
     {
-        super("", new ImageIcon("./images/deleteAll.png"));
+        super("", new ImageIcon("./images/trashbin.png"));
         this.bookmarkManager = bookmarkManager;
     }
 

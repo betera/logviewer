@@ -76,8 +76,16 @@ public class BookmarkManager
             {
                 setLayout(new FlowLayout(SwingConstants.LEADING));
                 add(searchField);
-                add(findNext);
                 add(findPrevious);
+                add(findNext);
+            }
+
+            protected void bind()
+            {
+                super.bind();
+                searchField.setColumns(10);
+                findNext.setText(">>");
+                findPrevious.setText("<<");
             }
         };
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);

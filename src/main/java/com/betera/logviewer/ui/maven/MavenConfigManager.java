@@ -112,7 +112,7 @@ public class MavenConfigManager
         return null;
     }
 
-    public static void writeConfig()
+    public static void saveMavenConfig()
     {
         File f = new File("maven.config");
         if ( f.exists() )

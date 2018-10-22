@@ -112,7 +112,7 @@ public class TabBasedLogfilesContainer
     public void focusLogfile(Logfile aLogfile)
     {
         int index = getIndexForLogfile(aLogfile);
-        if ( index != 0 )
+        if ( index > -1 )
         {
             component.setSelectedIndex(index);
         }
@@ -175,6 +175,10 @@ public class TabBasedLogfilesContainer
         if ( tab != null && !component.getSelectedComponent().equals(tab) )
         {
             tab.setHasChanges(hasChanges && !isLogfileFocused(logfile));
+            if ( !isLogfileFocused(logfile) && logViewer.getFocusActiveCheckbox().isSelected() )
+            {
+                focusLogfile(logfile);
+            }
         }
     }
 
@@ -301,8 +305,8 @@ public class TabBasedLogfilesContainer
             }
             else
             {
-                g.setColor(Color.GRAY);
-                g.fillOval(0, 0, getWidth() / 2, getHeight() / 2);
+//                g.setColor(Color.GRAY);
+//                g.fillOval(0, 0, getWidth() / 2, getHeight() / 2);
             }
         }
     }

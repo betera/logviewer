@@ -4,20 +4,18 @@ import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.LogfilesContainer;
 import com.betera.logviewer.file.TabBasedLogfilesContainer;
 import com.betera.logviewer.file.column.LogfileParser;
-import com.betera.logviewer.file.highlight.HighlightEntry;
 import com.betera.logviewer.file.highlight.HighlightManager;
+import com.betera.logviewer.ui.action.EditAction;
 import com.betera.logviewer.ui.action.OpenFileAction;
 import com.betera.logviewer.ui.maven.MavenConfigManager;
 import com.betera.logviewer.ui.maven.MavenManager;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -52,15 +50,15 @@ public class LogViewer
     public static final String PROP_LOGFILES = "pref.openLogfiles";
     private static final Object PROP_FOLLOW_TAIL = "pref.followTail";
     private static final int MAX_RECENT_FILE_SIZE = 10;
+    private static final String VERSION = "0.1";
 
-    private JFrame mainFrame;
+    private static JFrame mainFrame;
 
     private LogfilesContainer logContainer;
 
     private JCheckBox followTailCheckbox;
-
+    private JCheckBox focusActiveCheckbox;
     private JPanel content;
-
     private List<String> recentFiles;
 
     public LogViewer()
@@ -93,6 +91,21 @@ public class LogViewer
         JOptionPane.showMessageDialog(null, "ERROR: " + sOut.toString());
     }
 
+    public static JFrame getMainFrame()
+    {
+        return mainFrame;
+    }
+
+    public JCheckBox getFocusActiveCheckbox()
+    {
+        return focusActiveCheckbox;
+    }
+
+    public void setFocusActiveCheckbox(JCheckBox focusActiveCheckbox)
+    {
+        this.focusActiveCheckbox = focusActiveCheckbox;
+    }
+
     public List<String> getRecentFiles()
     {
         if ( recentFiles == null )
@@ -111,12 +124,12 @@ public class LogViewer
             IOException
     {
 
-        readHighlightConfig();
+        HighlightManager.getInstance().readHighlightConfig();
         LogfileParser.readColumnFormatterConfig();
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-        mainFrame = new JFrame();
+        mainFrame = new JFrame("LogViewer v" + VERSION);
         ImageIcon icon = new ImageIcon("./images/logviewer.png");
         mainFrame.setIconImage(icon.getImage());
         mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -128,7 +141,7 @@ public class LogViewer
                 try
                 {
                     savePreferences();
-                    MavenConfigManager.writeConfig();
+                    MavenConfigManager.saveMavenConfig();
                     Debug.printStatistics();
                 }
                 catch ( IOException e1 )
@@ -216,6 +229,10 @@ public class LogViewer
         }));
 
         menuBar.add(fileMenu);
+
+        JMenu editMenu = new JMenu("Edit");
+        editMenu.add(new EditAction("Highlights", HighlightManager.getInstance()));
+        menuBar.add(editMenu);
 
         return menuBar;
     }
@@ -331,8 +348,12 @@ public class LogViewer
             logContainer.fireFollowTailChanged(doFollowTail, null);
 
         });
+
+        focusActiveCheckbox = new JCheckBox("Focus active");
+
         toolbar.add(createSeparator());
         toolbar.add(followTailCheckbox);
+        toolbar.add(focusActiveCheckbox);
         toolbar.add(createMavenToolbar());
         return toolbar;
     }
@@ -342,69 +363,6 @@ public class LogViewer
         JSeparator sep = new JSeparator(JSeparator.VERTICAL);
         sep.setPreferredSize(new Dimension(4, 16));
         return sep;
-    }
-
-    private void readHighlightConfig()
-            throws IOException
-    {
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File("highlight.config"))))
-        {
-            String line = reader.readLine();
-            while ( line != null )
-            {
-                if ( line.startsWith("[Highlight ") )
-                {
-                    String text = line.substring(line.indexOf(' ') + 1, line.length() - 1);
-                    boolean isDefault = text.equals("###DEFAULT###");
-                    String fontName = reader.readLine();
-                    line = reader.readLine();
-                    String[] stuff = line.split(" ");
-                    String sFontType = stuff[0];
-                    String sFontSize = stuff[1];
-                    String foregroundColor = stuff[2];
-                    String backgroundColor = stuff[3];
-                    String sAddBookmark = "0";
-                    if ( stuff.length >= 5 )
-                    {
-                        sAddBookmark = stuff[4];
-                    }
-
-                    int fontType = Integer.valueOf(sFontType);
-                    int fontSize = Integer.valueOf(sFontSize);
-                    javafx.scene.paint.Color fgColor = javafx.scene.paint.Color.valueOf(foregroundColor);
-                    javafx.scene.paint.Color bgColor = javafx.scene.paint.Color.valueOf(backgroundColor);
-                    boolean addBookmark = "1".equals(sAddBookmark);
-
-                    if ( !isDefault )
-                    {
-                        fontSize = HighlightManager.getDefaultEntry().getFont().getSize() + fontSize;
-                    }
-
-                    Font font = new Font(fontName, fontType, fontSize);
-                    HighlightEntry entry = new HighlightEntry(text,
-                                                              font,
-                                                              new java.awt.Color((float) fgColor.getRed(),
-                                                                                 (float) fgColor.getGreen(),
-                                                                                 (float) fgColor.getBlue()),
-                                                              new java.awt.Color((float) bgColor.getRed(),
-                                                                                 (float) bgColor.getGreen(),
-                                                                                 (float) bgColor.getBlue()),
-                                                              addBookmark);
-
-                    if ( isDefault )
-                    {
-                        HighlightManager.registerDefault(entry);
-                    }
-                    else
-                    {
-                        HighlightManager.registerHighlight(entry);
-                    }
-                }
-                line = reader.readLine();
-            }
-
-        }
-
     }
 
     private LogfilesContainer createLogfilesContainer()

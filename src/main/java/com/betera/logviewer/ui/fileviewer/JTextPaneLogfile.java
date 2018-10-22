@@ -17,6 +17,7 @@ import com.betera.logviewer.ui.bookmark.DefaultBookmark;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -36,6 +37,7 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,6 +59,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
@@ -315,7 +318,7 @@ public class JTextPaneLogfile
         textPane.setEditable(false);
         textPane.addMouseListener(this);
         textPane.setEditorKit(new WrapEditorKit());
-        textPane.setBackground(HighlightManager.getDefaultEntry().getBackgroundColor());
+        textPane.setBackground(HighlightManager.getInstance().getDefaultEntry().getBackgroundColor());
         doc = textPane.getStyledDocument();
         doc.addDocumentListener(createDocumentScrollListener());
         textPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
@@ -348,6 +351,7 @@ public class JTextPaneLogfile
         JToolBar tb = new JToolBar();
         tb.setFloatable(false);
 
+        tb.add(createSeparator());
         tb.add(new AbstractAction("Pack table", new ImageIcon("./images/pack.png"))
         {
             @Override
@@ -364,8 +368,8 @@ public class JTextPaneLogfile
                 }
             }
         });
-        Icon lineWrapOnIcon = new ImageIcon("./images/arrowDown.png");
-        Icon lineWrapOffIcon = new ImageIcon("./images/arrowUp.png");
+        Icon lineWrapOnIcon = new ImageIcon("./images/wrapOn.png");
+        Icon lineWrapOffIcon = new ImageIcon("./images/wrapOff.png");
 
         tb.add(new AbstractAction("Toggle Line-Wrap", lineWrapOnIcon)
         {
@@ -401,6 +405,7 @@ public class JTextPaneLogfile
         final ImageIcon textPaneIcon = new ImageIcon("./images/textPane.png");
 
         JToolBar tb = new JToolBar();
+        tb.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 0));
         tb.setFloatable(false);
 
         tb.add(new AbstractAction("Table view", new ImageIcon("./images/table.png"))
@@ -432,7 +437,43 @@ public class JTextPaneLogfile
             }
         });
 
+        tb.add(createSeparator());
+        tb.add(new AbstractAction("Clear file", new ImageIcon("./images/clearFile.png"))
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                try
+                {
+                    RandomAccessFile raf = new RandomAccessFile(file, "rws");
+                    raf.setLength(0);
+                    raf.close();
+                    clearModel();
+                }
+                catch ( IOException e1 )
+                {
+                    file.delete();
+                    try
+                    {
+                        file.createNewFile();
+                        clearModel();
+                    }
+                    catch ( IOException e2 )
+                    {
+                        LogViewer.handleException(e2);
+                    }
+                }
+            }
+        });
+
         return tb;
+    }
+
+    private JSeparator createSeparator()
+    {
+        JSeparator sep = new JSeparator(JSeparator.VERTICAL);
+        sep.setPreferredSize(new Dimension(4, 32));
+        return sep;
     }
 
     private JToolBar createLogfileToolbar()
@@ -451,8 +492,8 @@ public class JTextPaneLogfile
         logRootToolBar.add(leftTBPanel, BorderLayout.WEST);
         logRootToolBar.add(rightTB, BorderLayout.EAST);
 
-        Icon toolPanelOn = new ImageIcon("./images/arrowDown.png");
-        Icon toolPanelOff = new ImageIcon("./images/arrowUp.png");
+        Icon toolPanelOn = new ImageIcon("./images/expand.png");
+        Icon toolPanelOff = new ImageIcon("./images/collapse.png");
         rightTB.add(new AbstractAction("Toggle tool panel", toolPanelOn)
         {
             int divider = -1;
@@ -851,7 +892,7 @@ public class JTextPaneLogfile
 
             doc.insertString(docLen, content, null);
             final int end = doc.getLength();
-            final HighlightEntry entry = HighlightManager.findHighlightEntry(line);
+            final HighlightEntry entry = HighlightManager.getInstance().findHighlightEntry(line);
             if ( entry != null )
             {
                 addHighlightToLine(start, entry.getBackgroundColor(), false);

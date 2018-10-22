@@ -26,6 +26,11 @@ public class HighlightEntry
         return addBookmark;
     }
 
+    public void setAddBookmark(boolean addBookmark)
+    {
+        this.addBookmark = addBookmark;
+    }
+
     public Color getForegroundColor()
     {
         return foregroundColor;
@@ -51,8 +56,33 @@ public class HighlightEntry
         return text;
     }
 
+    public void setText(String text)
+    {
+        this.text = text;
+    }
+
     public Font getFont()
     {
         return font != null ? font : new Font("Consolas", Font.PLAIN, 14);
+    }
+
+    public void setFont(Font font)
+    {
+        this.font = font;
+    }
+
+    public void setBold(boolean isBold)
+    {
+        setFont(getFont().deriveFont(isBold ? Font.BOLD : Font.PLAIN));
+    }
+
+    public void setFontFamily(String family)
+    {
+        setFont(new Font(family, getFont().getStyle(), getFont().getSize()));
+    }
+
+    public void setFontSize(int size)
+    {
+        setFont(getFont().deriveFont((float) size));
     }
 }
