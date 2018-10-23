@@ -61,6 +61,7 @@ public class HighlightEditPanel
     private JCheckBox bookmarkCheckbox;
 
     private Action deleteAction;
+    private Action copyAction;
 
     public HighlightEditPanel()
     {
@@ -94,7 +95,7 @@ public class HighlightEditPanel
         toolbar.setOrientation(SwingConstants.VERTICAL);
         toolbar.setFloatable(false);
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-        Action newAction = new AbstractAction("New", new ImageIcon("./images/open.png"))
+        Action newAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
         {
 
             @Override
@@ -127,7 +128,27 @@ public class HighlightEditPanel
             }
         };
 
+        copyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                for ( Object entryObj : list.getSelectedValues() )
+                {
+                    HighlightEntry entry = (HighlightEntry) entryObj;
+                    model.addElement(new HighlightEntry(entry.getText() + " Copy",
+                                                        entry.getFont(),
+                                                        entry.getForegroundColor(),
+                                                        entry.getBackgroundColor(),
+                                                        entry.isAddBookmark()));
+                }
+                list.repaint();
+            }
+        };
+
         toolbar.add(newAction);
+        toolbar.add(copyAction);
         toolbar.add(deleteAction);
         deleteAction.setEnabled(false);
         JPanel pnl = new JPanel();
@@ -358,6 +379,7 @@ public class HighlightEditPanel
     {
         detailPanel.setEnabled(list.getSelectedValues().length == 1);
         deleteAction.setEnabled(list.getSelectedValues().length > 0);
+        copyAction.setEnabled(list.getSelectedValues().length > 0);
     }
 
     @Override

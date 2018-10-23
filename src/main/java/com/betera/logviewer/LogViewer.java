@@ -10,6 +10,7 @@ import com.betera.logviewer.ui.action.OpenFileAction;
 import com.betera.logviewer.ui.maven.MavenConfigManager;
 import com.betera.logviewer.ui.maven.MavenManager;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
@@ -41,6 +42,7 @@ import javax.swing.JSeparator;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.border.LineBorder;
 
 public class LogViewer
 {
@@ -312,8 +314,7 @@ public class LogViewer
         JToolBar tb = new JToolBar();
         tb.setLayout(new FlowLayout(FlowLayout.LEADING, 8, 2));
         tb.setBorderPainted(true);
-        tb.setBorder(BorderFactory.createEtchedBorder());
-        tb.setFloatable(false);
+        tb.setBorder(BorderFactory.createTitledBorder(new LineBorder(Color.LIGHT_GRAY), "Maven"));
         tb.add(MavenManager.getProjectComboBox());
         tb.add(createSeparator());
         tb.add(MavenManager.getDoCleanCheckBox());
@@ -334,26 +335,43 @@ public class LogViewer
         return tb;
     }
 
-    private JToolBar createToolbar()
+    private JToolBar createStandardToolbar()
     {
         JToolBar toolbar = new JToolBar();
+        toolbar.setBorderPainted(true);
+        toolbar.setBorder(BorderFactory.createTitledBorder(new LineBorder(Color.LIGHT_GRAY), "Standard"));
         toolbar.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 4));
         toolbar.setSize(new Dimension(200, 48));
         toolbar.setFloatable(false);
         toolbar.add(new OpenFileAction(this, logContainer));
 
-        followTailCheckbox = new JCheckBox("Follow Tail");
+        followTailCheckbox = new JCheckBox("");
+        followTailCheckbox.setToolTipText("Follow tail");
+        followTailCheckbox.setIcon(new ImageIcon("./images/tail.png"));
+        followTailCheckbox.setSelectedIcon(new ImageIcon("./images/tail_checked.png"));
         followTailCheckbox.addItemListener(e -> {
             boolean doFollowTail = e.getStateChange() == ItemEvent.SELECTED;
             logContainer.fireFollowTailChanged(doFollowTail, null);
 
         });
 
-        focusActiveCheckbox = new JCheckBox("Focus active");
+        focusActiveCheckbox = new JCheckBox("");
+        focusActiveCheckbox.setToolTipText("Focus active window");
+        focusActiveCheckbox.setIcon(new ImageIcon("./images/focus.png"));
+        focusActiveCheckbox.setSelectedIcon(new ImageIcon("./images/focus_checked.png"));
 
-        toolbar.add(createSeparator());
         toolbar.add(followTailCheckbox);
         toolbar.add(focusActiveCheckbox);
+        return toolbar;
+    }
+
+    private JToolBar createToolbar()
+    {
+        JToolBar toolbar = new JToolBar();
+        toolbar.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 4));
+        toolbar.setSize(new Dimension(200, 48));
+        toolbar.setFloatable(false);
+        toolbar.add(createStandardToolbar());
         toolbar.add(createMavenToolbar());
         return toolbar;
     }
@@ -361,7 +379,7 @@ public class LogViewer
     private JSeparator createSeparator()
     {
         JSeparator sep = new JSeparator(JSeparator.VERTICAL);
-        sep.setPreferredSize(new Dimension(4, 16));
+        sep.setPreferredSize(new Dimension(2, 24));
         return sep;
     }
 

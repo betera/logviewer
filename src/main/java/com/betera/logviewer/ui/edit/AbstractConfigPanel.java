@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui.edit;
 
+import com.betera.logviewer.ui.MyWindowsButtonUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -100,6 +101,7 @@ public class AbstractConfigPanel
         cancelBtn.setBorderPainted(false);
         cancelBtn.setIcon(new ImageIcon("./images/cancel.png"));
         cancelBtn.setFocusable(false);
+        cancelBtn.setUI(new MyWindowsButtonUI());
         cancelBtn.addActionListener(new ActionListener()
         {
             @Override
@@ -113,6 +115,7 @@ public class AbstractConfigPanel
         okBtn.setContentAreaFilled(false);
         okBtn.setBorderPainted(false);
         okBtn.setIcon(new ImageIcon("./images/ok.png"));
+        okBtn.setUI(new MyWindowsButtonUI());
 
         okBtn.addActionListener(new ActionListener()
         {
