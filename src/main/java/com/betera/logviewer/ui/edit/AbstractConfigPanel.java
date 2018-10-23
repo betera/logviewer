@@ -13,6 +13,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 
 public class AbstractConfigPanel
@@ -27,8 +28,9 @@ public class AbstractConfigPanel
     {
         this.title = title;
         closedListener = new ArrayList<>();
-        setPreferredSize(new Dimension(600, 400));
+        setPreferredSize(new Dimension(600, 600));
         setLayout(new BorderLayout());
+        setBorder(UIManager.getBorder("InternalFrame.border"));
         add(createNavigationPanel(), BorderLayout.SOUTH);
         add(createContentPanel(), BorderLayout.CENTER);
         add(createTitlePanel(), BorderLayout.NORTH);

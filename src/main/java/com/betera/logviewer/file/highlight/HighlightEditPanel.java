@@ -10,6 +10,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
@@ -17,17 +18,23 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
+import javax.swing.border.EmptyBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import org.jdesktop.swingx.JXColorSelectionButton;
@@ -40,7 +47,6 @@ public class HighlightEditPanel
         implements ListSelectionListener, ListCellRenderer<HighlightEntry>
 {
 
-    private List<HighlightEntry> entries;
     private HighlightListModel model;
     private List<HighlightEntry> selectedEntries;
     private JXList list;
@@ -54,13 +60,14 @@ public class HighlightEditPanel
     private JCheckBox boldCheckbox;
     private JCheckBox bookmarkCheckbox;
 
+    private Action deleteAction;
+
     public HighlightEditPanel()
     {
         super("Highlights");
         initDetailView();
-        entries = new ArrayList<>(HighlightManager.getInstance().getEntries());
         model = new HighlightListModel();
-        for ( HighlightEntry entry : entries )
+        for ( HighlightEntry entry : HighlightManager.getInstance().getEntries() )
         {
             model.addElement(entry);
         }
@@ -75,9 +82,58 @@ public class HighlightEditPanel
 
         getContentPanel().setLayout(new BorderLayout());
         getContentPanel().add(new JScrollPane(list), BorderLayout.CENTER);
+        getContentPanel().add(createActionBar(), BorderLayout.EAST);
         getContentPanel().add(detailPanel, BorderLayout.SOUTH);
 
         updateEnablement();
+    }
+
+    private JPanel createActionBar()
+    {
+        JToolBar toolbar = new JToolBar();
+        toolbar.setOrientation(SwingConstants.VERTICAL);
+        toolbar.setFloatable(false);
+        toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
+        Action newAction = new AbstractAction("New", new ImageIcon("./images/open.png"))
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                HighlightEntry defaultEntry = HighlightManager.getInstance().getDefaultEntry();
+
+                HighlightEntry entry = new HighlightEntry("New entry",
+                                                          defaultEntry.getFont(),
+                                                          defaultEntry.getForegroundColor(),
+                                                          defaultEntry.getBackgroundColor(),
+                                                          false);
+                model.addElement(entry);
+                list.setSelectedValue(entry, true);
+            }
+        };
+
+        deleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                for ( int i = list.getSelectedIndices().length - 1; i >= 0; i-- )
+                {
+                    model.remove(list.getSelectedIndices()[i]);
+                }
+
+                updateDetailView();
+                updateEnablement();
+            }
+        };
+
+        toolbar.add(newAction);
+        toolbar.add(deleteAction);
+        deleteAction.setEnabled(false);
+        JPanel pnl = new JPanel();
+        pnl.setLayout(new BorderLayout());
+        pnl.add(toolbar, BorderLayout.CENTER);
+        return pnl;
     }
 
     private void initDetailView()
@@ -95,6 +151,7 @@ public class HighlightEditPanel
             }
         };
         detailPanel.setLayout(new GridLayout(3, 4));
+        detailPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
         text = new JXTextField();
         text.setOuterMargin(new Insets(4, 4, 4, 4));
         text.setColumns(16);
@@ -143,18 +200,14 @@ public class HighlightEditPanel
             @Override
             public void itemStateChanged(ItemEvent evt)
             {
-                if ( evt.getStateChange() == ItemEvent.SELECTED )
+                if ( list.getSelectedValues().length != 1 )
                 {
-                    if ( list.getSelectedValues().length != 1 )
-                    {
-                        return;
-                    }
-
-                    HighlightEntry e = (HighlightEntry) list.getSelectedValue();
-                    e.setBold(boldCheckbox.isSelected());
-                    list.repaint();
-
+                    return;
                 }
+
+                HighlightEntry e = (HighlightEntry) list.getSelectedValue();
+                e.setBold(boldCheckbox.isSelected());
+                list.repaint();
             }
         });
 
@@ -260,7 +313,7 @@ public class HighlightEditPanel
 
     public List<HighlightEntry> getHighlightEntries()
     {
-        return entries;
+        return ((HighlightListModel) model).getEntries();
     }
 
     @Override
@@ -304,6 +357,7 @@ public class HighlightEditPanel
     private void updateEnablement()
     {
         detailPanel.setEnabled(list.getSelectedValues().length == 1);
+        deleteAction.setEnabled(list.getSelectedValues().length > 0);
     }
 
     @Override
@@ -373,6 +427,15 @@ public class HighlightEditPanel
     protected class HighlightListModel
             extends DefaultListModel<HighlightEntry>
     {
+        public List<HighlightEntry> getEntries()
+        {
+            List<HighlightEntry> list = new ArrayList<>();
+            for ( int i = 0; i < getSize(); i++ )
+            {
+                list.add(get(i));
+            }
 
+            return list;
+        }
     }
 }
