@@ -1,61 +1,96 @@
 package com.betera.logviewer.file.column;
 
-import java.util.List;
+import com.betera.logviewer.LogViewer;
 
 public class LogfileColumnConfig
 {
 
-    private LogfileColumnConfigEntry[] entries;
-    private String matcher;
-    private String name;
-    private List<String> toIgnore;
+    private String columnName;
+    private String entryType;
+    private String[] params;
+    private int maxColumnSize;
     private boolean initiallyHidden;
 
-    public LogfileColumnConfig(String aName,
-                               String aMatcher,
-                               List<String> toIgnore,
-                               LogfileColumnConfigEntry... columnEntries)
+    public LogfileColumnConfig(String aColumnName,
+                               String entryType,
+                               int maxColumnSize,
+                               boolean initiallyHidden,
+                               String... params)
     {
-        this.toIgnore = toIgnore;
+        setColumnName(aColumnName);
+        setEntryType(entryType);
+        setInitiallyHidden(initiallyHidden);
+        setMaxColumnSize(maxColumnSize);
+        setParams(params);
+    }
+
+    public int getMaxColumnSize()
+    {
+        return maxColumnSize > 0 ? maxColumnSize : 99999;
+    }
+
+    public void setMaxColumnSize(int maxColumnSize)
+    {
+        this.maxColumnSize = maxColumnSize;
+    }
+
+    public boolean isInitiallyHidden()
+    {
+        return initiallyHidden;
+    }
+
+    public void setInitiallyHidden(boolean initiallyHidden)
+    {
         this.initiallyHidden = initiallyHidden;
-        setName(aName);
-        setMatcher(aMatcher);
-        setEntries(columnEntries);
     }
 
-    public List<String> getIgnoreList()
+    public LogfileColumnParser getParser()
     {
-        return toIgnore;
+        LogfileColumnParseType parser = LogfileColumnParseType.valueOf(entryType);
+        try
+        {
+            return parser.getParserClass().newInstance();
+        }
+        catch ( InstantiationException | IllegalAccessException e )
+        {
+            LogViewer.handleException(e);
+        }
+        return null;
     }
 
-    public LogfileColumnConfigEntry[] getEntries()
+    public String getColumnName()
     {
-        return entries;
+        return columnName;
     }
 
-    public void setEntries(LogfileColumnConfigEntry[] entries)
+    public void setColumnName(String columnName)
     {
-        this.entries = entries;
+        this.columnName = columnName;
     }
 
-    public String getMatcher()
+    public String getEntryType()
     {
-        return matcher;
+        return entryType;
     }
 
-    public void setMatcher(String matcher)
+    public void setEntryType(String entryType)
     {
-        this.matcher = matcher;
+        this.entryType = entryType;
     }
 
-    public String getName()
+    public String[] getParams()
     {
-        return name;
+        return params;
     }
 
-    public void setName(String name)
+    public void setParams(String[] params)
     {
-        this.name = name;
+        this.params = params;
+    }
+
+    public String toString()
+    {
+        return getColumnName();
     }
 
 }

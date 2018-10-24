@@ -7,8 +7,8 @@ import com.betera.logviewer.file.LogfileStateChangedListener;
 import com.betera.logviewer.file.LogfilesContainer;
 import com.betera.logviewer.file.column.LogfileColumn;
 import com.betera.logviewer.file.column.LogfileColumnConfig;
-import com.betera.logviewer.file.column.LogfileColumnConfigEntry;
 import com.betera.logviewer.file.column.LogfileParser;
+import com.betera.logviewer.file.column.LogfileRowConfig;
 import com.betera.logviewer.file.highlight.HighlightEntry;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.JVerticalButton;
@@ -120,7 +120,7 @@ public class JTextPaneLogfile
     private ButtonGroup toolWindowButtonGroup;
     private JPanel toolBarContentPanel;
     private JXTable docTable;
-    private LogfileColumnConfig columnConfig;
+    private LogfileRowConfig columnConfig;
     private float minLabelSpan;
 
     private boolean lineWrap = false;
@@ -258,7 +258,7 @@ public class JTextPaneLogfile
         docTable.setSortable(false);
         docTable.setGridColor(Color.lightGray);
         docTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-        columnConfig = LogfileParser.findMatchingConfig(this);
+        columnConfig = LogfileParser.getInstance().findMatchingConfig(this);
         createTableModelFromColumnConfig();
 
     }
@@ -336,7 +336,7 @@ public class JTextPaneLogfile
 
     private int getMaxWidthForColumn(TableColumn col)
     {
-        for ( LogfileColumnConfigEntry entry : columnConfig.getEntries() )
+        for ( LogfileColumnConfig entry : columnConfig.getEntries() )
         {
             if ( col.getIdentifier().equals(entry.getColumnName()) )
             {
@@ -553,7 +553,7 @@ public class JTextPaneLogfile
         {
             String identifier = (String) column.getIdentifier();
             {
-                for ( LogfileColumnConfigEntry entry : columnConfig.getEntries() )
+                for ( LogfileColumnConfig entry : columnConfig.getEntries() )
                 {
                     if ( entry.getColumnName().equals(identifier) )
                     {
@@ -907,7 +907,7 @@ public class JTextPaneLogfile
                 }
             }
 
-            LogfileColumn[] columns = LogfileParser.parseLine(columnConfig, line);
+            LogfileColumn[] columns = LogfileParser.getInstance().parseLine(columnConfig, line);
 
             Vector<CellInfos> vector = new Vector<>();
             vector.add(new CellInfos(entry, (tableModel.getRowCount() + 1) + ""));

@@ -1,6 +1,5 @@
 package com.betera.logviewer.ui;
 
-import com.sun.java.swing.plaf.windows.WindowsToggleButtonUI;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -11,8 +10,8 @@ import java.awt.Rectangle;
 import java.awt.geom.Rectangle2D;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
-import javax.swing.JComponent;
 import javax.swing.JToggleButton;
+import javax.swing.plaf.basic.BasicToggleButtonUI;
 import sun.swing.SwingUtilities2;
 
 public class JVerticalButton
@@ -71,18 +70,12 @@ public class JVerticalButton
     }
 
     protected class VerticalToggleButtonUI
-            extends WindowsToggleButtonUI
+            extends BasicToggleButtonUI
     {
 
         private transient Color cachedSelectedColor = null;
         private transient Color cachedBackgroundColor = null;
         private transient Color cachedHighlightColor = null;
-
-        @Override
-        public void update(Graphics g, JComponent c)
-        {
-            paint(g, c);
-        }
 
         protected void paintText(Graphics g, AbstractButton b, Rectangle textRect, String text)
         {

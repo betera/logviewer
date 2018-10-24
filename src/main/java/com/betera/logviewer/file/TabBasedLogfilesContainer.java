@@ -20,8 +20,10 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.basic.BasicButtonUI;
 
 public class TabBasedLogfilesContainer
         implements LogfilesContainer, LogfileStateChangedListener
@@ -234,10 +236,12 @@ public class TabBasedLogfilesContainer
 
             hasChangesPanel = new ChangesPanel();
             title = new JLabel(aLogfile.getDisplayName());
+            title.setFont(UIManager.getFont("TabbedPane.font"));
             title.setOpaque(false);
             closeButton = new JButton();
-            closeButton.setSize(new Dimension(16, 16));
-            closeButton.setPreferredSize(new Dimension(16, 16));
+            closeButton.setUI(new BasicButtonUI());
+            closeButton.setSize(new Dimension(20, 20));
+            closeButton.setPreferredSize(new Dimension(20, 20));
             closeButton.setContentAreaFilled(false);
             closeButton.setBorderPainted(false);
             closeButton.setIcon(new ImageIcon("./images/close.png"));

@@ -24,7 +24,6 @@ public class AbstractConfigPanel
     protected List<ConfigDialogClosedListener> closedListener;
     protected String title;
     private JPanel contentPanel;
-
     public AbstractConfigPanel(String title)
     {
         this.title = title;
@@ -35,6 +34,11 @@ public class AbstractConfigPanel
         add(createNavigationPanel(), BorderLayout.SOUTH);
         add(createContentPanel(), BorderLayout.CENTER);
         add(createTitlePanel(), BorderLayout.NORTH);
+    }
+
+    public String getTitle()
+    {
+        return title;
     }
 
     public JPanel getContentPanel()

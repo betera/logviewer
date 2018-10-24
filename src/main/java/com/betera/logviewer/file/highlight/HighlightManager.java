@@ -1,9 +1,8 @@
 package com.betera.logviewer.file.highlight;
 
 import com.betera.logviewer.LogViewer;
-import com.betera.logviewer.ui.edit.ConfigDialogClosedListener;
+import com.betera.logviewer.ui.edit.ConfigDialog;
 import com.betera.logviewer.ui.edit.ConfigEditUIProvider;
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.io.BufferedReader;
@@ -14,7 +13,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.JDialog;
 
 public class HighlightManager
         implements ConfigEditUIProvider
@@ -261,31 +259,8 @@ public class HighlightManager
     @Override
     public void displayEditPanel()
     {
-        JDialog dialog = new JDialog();
         editPanel = new HighlightEditPanel();
-        editPanel.addConfigDialogClosedListener(new ConfigDialogClosedListener()
-        {
-            @Override
-            public void dialogCancelled()
-            {
-                dialog.dispose();
-            }
-
-            @Override
-            public void dialogSaved()
-            {
-                updateConfig();
-                dialog.dispose();
-            }
-        });
-        dialog.setUndecorated(true);
-        dialog.getContentPane().setLayout(new BorderLayout());
-        dialog.getContentPane().add(editPanel, BorderLayout.CENTER);
-        dialog.setModal(true);
-        dialog.setTitle("Highlights");
-        dialog.pack();
-        dialog.setLocationRelativeTo(LogViewer.getMainFrame());
-        dialog.setVisible(true);
+        new ConfigDialog(this, editPanel).setVisible(true);
     }
 
     @Override

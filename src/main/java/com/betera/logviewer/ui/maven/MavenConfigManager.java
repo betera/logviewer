@@ -1,6 +1,8 @@
 package com.betera.logviewer.ui.maven;
 
 import com.betera.logviewer.LogViewer;
+import com.betera.logviewer.ui.edit.ConfigDialog;
+import com.betera.logviewer.ui.edit.ConfigEditUIProvider;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -11,64 +13,72 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MavenConfigManager
+        implements ConfigEditUIProvider
 {
+    private static final MavenConfigManager instance = new MavenConfigManager();
 
-    private static List<MavenProject> projects;
+    private List<MavenProject> projects;
 
-    private static List<MavenDeployment> deployments;
+    private List<MavenDeployment> deployments;
 
-    private static String defaultGoal;
+    private String defaultGoal;
 
-    private static String defaultProject;
+    private String defaultProject;
 
-    private static boolean defaultUseProfile;
-    private static boolean defaultTests;
-    private static String defaultProfile;
-    private static boolean defaultClean;
-    private static String defaultDeployment;
-    private static boolean defaultForceUpdate;
+    private boolean defaultUseProfile;
+    private boolean defaultTests;
+    private String defaultProfile;
+    private boolean defaultClean;
+    private String defaultDeployment;
+    private boolean defaultForceUpdate;
+    private MavenEditPanel editPanel;
 
-    public static boolean isDefaultForceUpdate()
+    public static synchronized MavenConfigManager getInstance()
+    {
+        return instance;
+    }
+
+    public boolean isDefaultForceUpdate()
     {
         return defaultForceUpdate;
     }
 
-    public static boolean isDefaultTests()
+    public boolean isDefaultTests()
     {
         return defaultTests;
     }
 
-    public static String getDefaultDeployment()
+    public String getDefaultDeployment()
     {
         return defaultDeployment;
     }
 
-    public static String getDefaultGoal()
+    public String getDefaultGoal()
     {
         return defaultGoal;
     }
 
-    public static String getDefaultProject()
+    public String getDefaultProject()
     {
         return defaultProject;
     }
 
-    public static boolean isDefaultUseProfile()
+    public boolean isDefaultUseProfile()
     {
         return defaultUseProfile;
     }
 
-    public static String getDefaultProfile()
+    public String getDefaultProfile()
     {
         return defaultProfile;
     }
 
-    public static boolean isDefaultClean()
+    public boolean isDefaultClean()
     {
         return defaultClean;
     }
 
-    public static List<MavenProject> getProjects()
+    public List<MavenProject> getProjects()
     {
         if ( projects == null )
         {
@@ -78,7 +88,7 @@ public class MavenConfigManager
         return projects;
     }
 
-    public static List<MavenDeployment> getDeployments()
+    public List<MavenDeployment> getDeployments()
     {
         if ( deployments == null )
         {
@@ -88,7 +98,7 @@ public class MavenConfigManager
         return deployments;
     }
 
-    public static MavenProject getProjectByName(String aName)
+    public MavenProject getProjectByName(String aName)
     {
         for ( MavenProject prj : getProjects() )
         {
@@ -100,7 +110,7 @@ public class MavenConfigManager
         return null;
     }
 
-    public static MavenDeployment getDeploymentByName(String aName)
+    public MavenDeployment getDeploymentByName(String aName)
     {
         for ( MavenDeployment depl : getDeployments() )
         {
@@ -112,7 +122,7 @@ public class MavenConfigManager
         return null;
     }
 
-    public static void saveMavenConfig()
+    public void saveMavenConfig()
     {
         File f = new File("maven.config");
         if ( f.exists() )
@@ -122,7 +132,6 @@ public class MavenConfigManager
 
         try (PrintWriter out = new PrintWriter(new FileWriter(f)))
         {
-            ;
             for ( MavenProject proj : getProjects() )
             {
                 out.println("[Project " + proj.getProjectName() + "]");
@@ -136,16 +145,18 @@ public class MavenConfigManager
             }
 
             out.println("[Default]");
-            out.println("skipTests=" + MavenManager.getSkipTestsCheckBox().isSelected());
-            out.println("clean=" + MavenManager.getDoCleanCheckBox().isSelected());
-            out.println("useProfile=" + MavenManager.getUseProfileCheckBox().isSelected());
-            out.println("forceUpdate=" + MavenManager.getForceUpdateComboBox().isSelected());
-            out.println("deploy=" + ((MavenDeployment) MavenManager.getDeploymentComboBox()
-                    .getSelectedItem()).getDeploymentName());
+            out.println("skipTests=" + MavenManager.getInstance().getSkipTestsCheckBox().isSelected());
+            out.println("clean=" + MavenManager.getInstance().getDoCleanCheckBox().isSelected());
+            out.println("useProfile=" + MavenManager.getInstance().getUseProfileCheckBox().isSelected());
+            out.println("forceUpdate=" + MavenManager.getInstance().getForceUpdateComboBox().isSelected());
             out.println(
-                    "project=" + ((MavenProject) MavenManager.getProjectComboBox().getSelectedItem()).getProjectName());
-            out.println("goal=" + MavenManager.getGoalComboBox().getSelectedItem());
-            out.println("profile=" + MavenManager.getProfileTextField().getText());
+                    "deploy=" + ((MavenDeployment) MavenManager.getInstance().getDeploymentComboBox().getSelectedItem())
+                            .getDeploymentName());
+            out.println("project=" + ((MavenProject) MavenManager.getInstance()
+                    .getProjectComboBox()
+                    .getSelectedItem()).getProjectName());
+            out.println("goal=" + MavenManager.getInstance().getGoalComboBox().getSelectedItem());
+            out.println("profile=" + MavenManager.getInstance().getProfileTextField().getText());
         }
         catch ( IOException e )
         {
@@ -153,9 +164,11 @@ public class MavenConfigManager
         }
     }
 
-    public static void readConfig()
+    public void readConfig()
     {
         File f = new File("maven.config");
+        getProjects().clear();
+        getDeployments().clear();
         try
         {
             BufferedReader in = new BufferedReader(new FileReader(f));
@@ -269,4 +282,20 @@ public class MavenConfigManager
         }
     }
 
+    @Override
+    public void displayEditPanel()
+    {
+        editPanel = new MavenEditPanel();
+        new ConfigDialog(this, editPanel).setVisible(true);
+    }
+
+    @Override
+    public void updateConfig()
+    {
+        deployments = new ArrayList<>(editPanel.getMavenDeployments());
+        projects = new ArrayList<>(editPanel.getMavenProjects());
+
+        saveMavenConfig();
+        MavenManager.getInstance().init();
+    }
 }

@@ -2,6 +2,8 @@ package com.betera.logviewer.file.column;
 
 import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.Logfile;
+import com.betera.logviewer.ui.edit.ConfigDialog;
+import com.betera.logviewer.ui.edit.ConfigEditUIProvider;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -11,11 +13,24 @@ import java.util.List;
 import java.util.Map;
 
 public class LogfileParser
+        implements ConfigEditUIProvider
 {
 
-    private static Map<String, LogfileColumnConfig> configs;
+    private static final LogfileParser instance = new LogfileParser();
+    private Map<String, LogfileRowConfig> configs;
+    private LogfileParserEditPanel editPanel;
 
-    public static void readColumnFormatterConfig()
+    public static synchronized LogfileParser getInstance()
+    {
+        return instance;
+    }
+
+    public List<LogfileRowConfig> getRowConfigs()
+    {
+        return new ArrayList<>(configs.values());
+    }
+
+    public void readColumnFormatterConfig()
     {
         if ( configs == null )
         {
@@ -36,7 +51,7 @@ public class LogfileParser
                     String filePattern = line.split("=")[1];
                     filePattern = filePattern.substring(0, filePattern.length() - 1);
 
-                    List<LogfileColumnConfigEntry> entries = new ArrayList<>();
+                    List<LogfileColumnConfig> entries = new ArrayList<>();
 
                     line = in.readLine();
                     List<String> toIgnore = new ArrayList<>();
@@ -87,16 +102,17 @@ public class LogfileParser
                                 params = line.trim().split(" ");
                             }
 
-                            entries.add(new LogfileColumnConfigEntry(columnName, parserType, Integer.valueOf(maxColLen),
-                                                                     "false".equals(isVis),
-                                                                     params));
+                            entries.add(new LogfileColumnConfig(columnName,
+                                                                parserType,
+                                                                Integer.valueOf(maxColLen),
+                                                                "false".equals(isVis),
+                                                                params));
                         }
                         line = in.readLine();
                     }
-                    configs.put(filePattern, new LogfileColumnConfig(fileName, filePattern, toIgnore,
+                    configs.put(filePattern, new LogfileRowConfig(fileName, filePattern, toIgnore,
 
-                                                                     entries.toArray(new LogfileColumnConfigEntry[entries
-                                                                             .size()])));
+                                                                  entries.toArray(new LogfileColumnConfig[entries.size()])));
                 }
                 else
                 {
@@ -112,7 +128,7 @@ public class LogfileParser
 
     }
 
-    private static boolean isNumeric(String ignoreParam)
+    private boolean isNumeric(String ignoreParam)
     {
         try
         {
@@ -125,12 +141,12 @@ public class LogfileParser
         }
     }
 
-    public static LogfileColumnConfig findMatchingConfig(Logfile aLogfile)
+    public LogfileRowConfig findMatchingConfig(Logfile aLogfile)
     {
         return configs.get(aLogfile.getDisplayName());
     }
 
-    public static LogfileColumn[] parseLine(LogfileColumnConfig aConfig, String aLine)
+    public LogfileColumn[] parseLine(LogfileRowConfig aConfig, String aLine)
     {
         String line = aLine;
         if ( aConfig == null )
@@ -156,7 +172,7 @@ public class LogfileParser
 
         if ( !ignoreLine )
         {
-            for ( LogfileColumnConfigEntry entry : aConfig.getEntries() )
+            for ( LogfileColumnConfig entry : aConfig.getEntries() )
             {
                 String parsedLine = entry.getParser().parse(line, entry);
                 if ( parsedLine.length() < line.length() )
@@ -169,4 +185,16 @@ public class LogfileParser
         return columns.toArray(new LogfileColumn[columns.size()]);
     }
 
+    @Override
+    public void displayEditPanel()
+    {
+        editPanel = new LogfileParserEditPanel();
+        new ConfigDialog(this, editPanel).setVisible(true);
+    }
+
+    @Override
+    public void updateConfig()
+    {
+        // TODO
+    }
 }

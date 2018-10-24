@@ -41,17 +41,19 @@ public class RunMavenAction
     @Override
     public void actionPerformed(ActionEvent e)
     {
-        projectDir = ((MavenProject) MavenManager.getProjectComboBox().getSelectedItem()).getRootDir();
-        earPath = ((MavenProject) MavenManager.getProjectComboBox().getSelectedItem()).getEarPath();
-        deploymentDir = ((MavenDeployment) MavenManager.getDeploymentComboBox().getSelectedItem()).getDeploymentPath();
-        goal = (String) MavenManager.getGoalComboBox().getSelectedItem();
-        doClean = MavenManager.getDoCleanCheckBox().isSelected();
-        skipTests = MavenManager.getSkipTestsCheckBox().isSelected();
-        forceUpdate = MavenManager.getForceUpdateComboBox().isSelected();
-        useProfile = MavenManager.getUseProfileCheckBox().isSelected();
-        profile = MavenManager.getProfileTextField().getText();
+        projectDir = ((MavenProject) MavenManager.getInstance().getProjectComboBox().getSelectedItem()).getRootDir();
+        earPath = ((MavenProject) MavenManager.getInstance().getProjectComboBox().getSelectedItem()).getEarPath();
+        deploymentDir = ((MavenDeployment) MavenManager.getInstance()
+                .getDeploymentComboBox()
+                .getSelectedItem()).getDeploymentPath();
+        goal = (String) MavenManager.getInstance().getGoalComboBox().getSelectedItem();
+        doClean = MavenManager.getInstance().getDoCleanCheckBox().isSelected();
+        skipTests = MavenManager.getInstance().getSkipTestsCheckBox().isSelected();
+        forceUpdate = MavenManager.getInstance().getForceUpdateComboBox().isSelected();
+        useProfile = MavenManager.getInstance().getUseProfileCheckBox().isSelected();
+        profile = MavenManager.getInstance().getProfileTextField().getText();
 
-        MavenManager.run(projectDir, earPath, buildParamString(), deploymentDir);
+        MavenManager.getInstance().run(projectDir, earPath, buildParamString(), deploymentDir);
         for ( Logfile logfile : container.getOpenLogfiles() )
         {
             if ( "maven.log".equals(logfile.getDisplayName()) )

@@ -13,20 +13,28 @@ import javax.swing.JComboBox;
 import javax.swing.JTextField;
 
 public class MavenManager
+
 {
 
+    private static final MavenManager instance = new MavenManager();
     private static final String DEPLOYMENT_SUBDIR = "/standalone/deployments";
-    private static RunMavenAction action;
-    private static JComboBox<MavenProject> projectComboBox;
-    private static JComboBox<MavenDeployment> deploymentComboBox;
-    private static JComboBox goalComboBox;
-    private static JCheckBox useProfileCheckBox;
-    private static JCheckBox doCleanCheckBox;
-    private static JCheckBox skipTestsCheckBox;
-    private static JTextField profileTextField;
-    private static JCheckBox forceUpdateComboBox;
+    private RunMavenAction action;
+    private JComboBox<MavenProject> projectComboBox;
+    private JComboBox<MavenDeployment> deploymentComboBox;
+    private JComboBox goalComboBox;
+    private JCheckBox useProfileCheckBox;
+    private JCheckBox doCleanCheckBox;
+    private JCheckBox skipTestsCheckBox;
+    private JTextField profileTextField;
+    private JCheckBox forceUpdateComboBox;
+    private MavenEditPanel editPanel;
 
-    public static JCheckBox getForceUpdateComboBox()
+    public static synchronized MavenManager getInstance()
+    {
+        return instance;
+    }
+
+    public JCheckBox getForceUpdateComboBox()
     {
         if ( forceUpdateComboBox == null )
         {
@@ -35,7 +43,7 @@ public class MavenManager
         return forceUpdateComboBox;
     }
 
-    public static JCheckBox getSkipTestsCheckBox()
+    public JCheckBox getSkipTestsCheckBox()
     {
         if ( skipTestsCheckBox == null )
         {
@@ -45,7 +53,7 @@ public class MavenManager
         return skipTestsCheckBox;
     }
 
-    public static JCheckBox getUseProfileCheckBox()
+    public JCheckBox getUseProfileCheckBox()
     {
         if ( useProfileCheckBox == null )
         {
@@ -55,7 +63,7 @@ public class MavenManager
         return useProfileCheckBox;
     }
 
-    public static JCheckBox getDoCleanCheckBox()
+    public JCheckBox getDoCleanCheckBox()
     {
         if ( doCleanCheckBox == null )
         {
@@ -64,7 +72,7 @@ public class MavenManager
         return doCleanCheckBox;
     }
 
-    public static JTextField getProfileTextField()
+    public JTextField getProfileTextField()
     {
         if ( profileTextField == null )
         {
@@ -75,7 +83,7 @@ public class MavenManager
         return profileTextField;
     }
 
-    public static JComboBox getGoalComboBox()
+    public JComboBox getGoalComboBox()
     {
         if ( goalComboBox == null )
         {
@@ -89,7 +97,7 @@ public class MavenManager
         return goalComboBox;
     }
 
-    public static JComboBox getDeploymentComboBox()
+    public JComboBox getDeploymentComboBox()
     {
         if ( deploymentComboBox == null )
         {
@@ -98,7 +106,7 @@ public class MavenManager
         return deploymentComboBox;
     }
 
-    public static JComboBox getProjectComboBox()
+    public JComboBox getProjectComboBox()
     {
         if ( projectComboBox == null )
         {
@@ -108,7 +116,7 @@ public class MavenManager
         return projectComboBox;
     }
 
-    public static RunMavenAction getAction(LogfilesContainer container)
+    public RunMavenAction getAction(LogfilesContainer container)
     {
         if ( action == null )
         {
@@ -118,35 +126,41 @@ public class MavenManager
         return action;
     }
 
-    public static void setAction(RunMavenAction action)
+    public void setAction(RunMavenAction action)
     {
-        MavenManager.action = action;
+        this.action = action;
     }
 
-    public static void init()
+    public void init()
     {
-        MavenConfigManager.readConfig();
+        MavenConfigManager.getInstance().readConfig();
 
-        for ( MavenProject proj : MavenConfigManager.getProjects() )
+        getProjectComboBox().removeAllItems();
+        for ( MavenProject proj : MavenConfigManager.getInstance().getProjects() )
         {
             getProjectComboBox().addItem(proj);
         }
-        for ( MavenDeployment depl : MavenConfigManager.getDeployments() )
+        getDeploymentComboBox().removeAllItems();
+        for ( MavenDeployment depl : MavenConfigManager.getInstance().getDeployments() )
         {
             getDeploymentComboBox().addItem(depl);
         }
 
-        getProfileTextField().setText(MavenConfigManager.getDefaultProfile());
-        getProjectComboBox().setSelectedItem(MavenConfigManager.getProjectByName(MavenConfigManager.getDefaultProject()));
-        getDeploymentComboBox().setSelectedItem(MavenConfigManager.getDeploymentByName(MavenConfigManager.getDefaultDeployment()));
-        getDoCleanCheckBox().setSelected(MavenConfigManager.isDefaultClean());
-        getUseProfileCheckBox().setSelected(MavenConfigManager.isDefaultUseProfile());
-        getGoalComboBox().setSelectedItem(MavenConfigManager.getDefaultGoal());
-        getSkipTestsCheckBox().setSelected(MavenConfigManager.isDefaultTests());
-        getForceUpdateComboBox().setSelected(MavenConfigManager.isDefaultForceUpdate());
+        getProfileTextField().setText(MavenConfigManager.getInstance().getDefaultProfile());
+        getProjectComboBox().setSelectedItem(MavenConfigManager.getInstance()
+                                                     .getProjectByName(MavenConfigManager.getInstance()
+                                                                               .getDefaultProject()));
+        getDeploymentComboBox().setSelectedItem(MavenConfigManager.getInstance()
+                                                        .getDeploymentByName(MavenConfigManager.getInstance()
+                                                                                     .getDefaultDeployment()));
+        getDoCleanCheckBox().setSelected(MavenConfigManager.getInstance().isDefaultClean());
+        getUseProfileCheckBox().setSelected(MavenConfigManager.getInstance().isDefaultUseProfile());
+        getGoalComboBox().setSelectedItem(MavenConfigManager.getInstance().getDefaultGoal());
+        getSkipTestsCheckBox().setSelected(MavenConfigManager.getInstance().isDefaultTests());
+        getForceUpdateComboBox().setSelected(MavenConfigManager.getInstance().isDefaultForceUpdate());
     }
 
-    public static void run(String rootDir, String targetEar, String params, String deployDir)
+    public void run(String rootDir, String targetEar, String params, String deployDir)
     {
         List<String> envVars = new ArrayList<>();
 
