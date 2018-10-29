@@ -20,6 +20,26 @@ public class LogfileRowConfig
         setEntries(columnEntries);
     }
 
+    public List<String> getToIgnore()
+    {
+        return toIgnore;
+    }
+
+    public void setToIgnore(List<String> toIgnore)
+    {
+        this.toIgnore = toIgnore;
+    }
+
+    public boolean isInitiallyHidden()
+    {
+        return initiallyHidden;
+    }
+
+    public void setInitiallyHidden(boolean initiallyHidden)
+    {
+        this.initiallyHidden = initiallyHidden;
+    }
+
     public List<String> getIgnoreList()
     {
         return toIgnore;

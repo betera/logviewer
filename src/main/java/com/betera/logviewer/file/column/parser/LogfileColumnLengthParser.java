@@ -23,4 +23,16 @@ public class LogfileColumnLengthParser
 
         return ret;
     }
+
+    @Override
+    public String getName()
+    {
+        return "LENGTH";
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "Delimits the column by a fixed integer length as first and only parameter";
+    }
 }

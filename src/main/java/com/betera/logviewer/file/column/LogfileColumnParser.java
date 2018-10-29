@@ -5,4 +5,8 @@ public interface LogfileColumnParser
 
     String parse(String aLine, LogfileColumnConfig entry);
 
+    String getName();
+
+    String getDescription();
+
 }

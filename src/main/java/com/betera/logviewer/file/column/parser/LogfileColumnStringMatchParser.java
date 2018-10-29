@@ -29,4 +29,16 @@ public class LogfileColumnStringMatchParser
 
         return ret;
     }
+
+    @Override
+    public String getName()
+    {
+        return "STRING";
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "Returns a substring delimited by the first parameter";
+    }
 }

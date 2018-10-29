@@ -18,4 +18,16 @@ public class LogfileColumnNoneParser
 
         return ret;
     }
+
+    @Override
+    public String getName()
+    {
+        return "NONE";
+    }
+
+    @Override
+    public String getDescription()
+    {
+        return "No delimiter used. This will return the whole text as line.";
+    }
 }
