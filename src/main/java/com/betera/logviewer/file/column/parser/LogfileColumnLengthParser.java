@@ -16,7 +16,7 @@ public class LogfileColumnLengthParser
             ret = aLine.substring(0, length);
         }
 
-        if ( ret.length() > entry.getMaxColumnSize() )
+        if ( entry.getMaxColumnSize() > 0 && ret.length() > entry.getMaxColumnSize() )
         {
             ret = ret.substring(0, entry.getMaxColumnSize());
         }

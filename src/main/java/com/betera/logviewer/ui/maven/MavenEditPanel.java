@@ -63,12 +63,12 @@ public class MavenEditPanel
         deplModel = new DeploymentModel();
         for ( MavenDeployment entry : MavenConfigManager.getInstance().getDeployments() )
         {
-            deplModel.addElement(entry);
+            deplModel.addElement(entry.copy());
         }
         projModel = new ProjectModel();
         for ( MavenProject entry2 : MavenConfigManager.getInstance().getProjects() )
         {
-            projModel.addElement(entry2);
+            projModel.addElement(entry2.copy());
         }
 
         deplList = new JXList();

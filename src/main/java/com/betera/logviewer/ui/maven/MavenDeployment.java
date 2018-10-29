@@ -37,4 +37,10 @@ public class MavenDeployment
     {
         return getDeploymentName();
     }
+
+    public MavenDeployment copy()
+    {
+        return new MavenDeployment(deploymentName, deploymentPath);
+    }
+
 }

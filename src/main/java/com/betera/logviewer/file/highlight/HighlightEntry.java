@@ -85,4 +85,9 @@ public class HighlightEntry
     {
         setFont(getFont().deriveFont((float) size));
     }
+
+    public HighlightEntry copy()
+    {
+        return new HighlightEntry(text, font, foregroundColor, backgroundColor, addBookmark);
+    }
 }

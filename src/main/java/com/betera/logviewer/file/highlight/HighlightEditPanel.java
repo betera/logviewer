@@ -70,7 +70,7 @@ public class HighlightEditPanel
         model = new HighlightListModel();
         for ( HighlightEntry entry : HighlightManager.getInstance().getEntries() )
         {
-            model.addElement(entry);
+            model.addElement(entry.copy());
         }
 
         list = new JXList();

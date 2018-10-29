@@ -1,12 +1,17 @@
 package com.betera.logviewer.file.column;
 
 import com.betera.logviewer.LogViewer;
+import com.betera.logviewer.Util;
+import com.betera.logviewer.Util.StringReadResult;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.ui.edit.ConfigDialog;
 import com.betera.logviewer.ui.edit.ConfigEditUIProvider;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,31 +62,14 @@ public class LogfileParser
                     List<String> toIgnore = new ArrayList<>();
                     while ( line != null && !line.startsWith("[") )
                     {
-                        String columnName = line;
-                        if ( line.indexOf(' ') > 0 )
-                        {
-                            columnName = line.substring(0, line.indexOf(' '));
-                        }
-                        line = line.substring(columnName.length() + 1);
+                        StringReadResult columnNameRead = Util.readString(line);
+                        String columnName = columnNameRead.getValue();
+                        line = line.substring(columnNameRead.getReadLength() + 1);
 
                         if ( columnName.equals("IGNORE") )
                         {
                             String ignoreParam = line;
-                            if ( ignoreParam.charAt(0) == '\\' )
-                            {
-                                if ( ignoreParam.charAt(1) == 't' )
-                                {
-                                    ignoreParam = "\t";
-                                }
-                            }
-                            if ( isNumeric(line) )
-                            {
-                                ignoreParam = "";
-                                for ( int i = 0; i < Integer.valueOf(line); i++ )
-                                {
-                                    ignoreParam += " ";
-                                }
-                            }
+
                             toIgnore.add(ignoreParam);
                         }
                         else
@@ -157,7 +145,7 @@ public class LogfileParser
         List<LogfileColumn> columns = new ArrayList<>();
 
         boolean ignoreLine = false;
-        for ( String toIgnore : aConfig.getIgnoreList() )
+        for ( String toIgnore : aConfig.getEffectiveIgnoreList() )
         {
             if ( line.startsWith(toIgnore) )
             {
@@ -195,6 +183,52 @@ public class LogfileParser
     @Override
     public void updateConfig()
     {
-        // TODO
+        configs.clear();
+        List<LogfileRowConfig> entries = editPanel.getEntries();
+        for ( LogfileRowConfig config : entries )
+        {
+            configs.put(config.getMatcher(), config);
+        }
+
+        saveConfig();
     }
+
+    public void saveConfig()
+    {
+        File f = new File("columnFormatter.config");
+        if ( f.exists() )
+        {
+            f.delete();
+        }
+
+        try (PrintWriter out = new PrintWriter(new FileWriter(f)))
+        {
+            for ( LogfileRowConfig row : configs.values() )
+            {
+                out.println("[" + row.getName() + "=" + row.getMatcher() + "]");
+                for ( LogfileColumnConfig col : row.getEntries() )
+                {
+                    String params = "";
+                    if ( col.getParams() != null && col.getParams().length > 0 )
+                    {
+                        params = String.join(" ", col.getParams());
+                    }
+
+                    out.println(
+                            "\"" + col.getColumnName() + "\" " + col.getMaxColumnSize() + " " + (col.isInitiallyHidden()
+                                    ? "false"
+                                    : "true") + " " + col.getEntryType() + (!params.isEmpty() ? " " + params : ""));
+                }
+                for ( String ignore : row.getIgnoreList() )
+                {
+                    out.println("IGNORE " + ignore);
+                }
+            }
+        }
+        catch ( IOException e )
+        {
+            LogViewer.handleException(e);
+        }
+    }
+
 }

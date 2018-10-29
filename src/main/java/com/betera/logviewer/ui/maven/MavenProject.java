@@ -48,4 +48,9 @@ public class MavenProject
     {
         return getProjectName();
     }
+
+    public MavenProject copy()
+    {
+        return new MavenProject(projectName, rootDir, earPath);
+    }
 }

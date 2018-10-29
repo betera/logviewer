@@ -11,7 +11,7 @@ public class LogfileColumnNoneParser
     {
         String ret = aLine;
 
-        if ( ret.length() > entry.getMaxColumnSize() )
+        if ( entry.getMaxColumnSize() > 0 && ret.length() > entry.getMaxColumnSize() )
         {
             ret = ret.substring(0, entry.getMaxColumnSize());
         }

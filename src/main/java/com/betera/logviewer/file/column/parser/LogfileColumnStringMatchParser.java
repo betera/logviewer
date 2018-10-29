@@ -22,7 +22,7 @@ public class LogfileColumnStringMatchParser
         {
             ret = aLine.substring(0, index + 1);
         }
-        if ( ret.length() > entry.getMaxColumnSize() )
+        if ( entry.getMaxColumnSize() > 0 && ret.length() > entry.getMaxColumnSize() )
         {
             ret = ret.substring(0, entry.getMaxColumnSize());
         }

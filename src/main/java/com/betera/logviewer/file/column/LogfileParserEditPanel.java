@@ -3,6 +3,8 @@ package com.betera.logviewer.file.column;
 import com.betera.logviewer.ui.EnablementInheritingJPanel;
 import com.betera.logviewer.ui.edit.AbstractConfigPanel;
 import com.betera.logviewer.ui.edit.DocumentTextAdapter;
+import com.betera.logviewer.ui.veto.Vetoable;
+import com.betera.logviewer.ui.veto.VetoableListSelectionModel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -16,11 +18,13 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -41,7 +45,7 @@ import org.jdesktop.swingx.JXTextField;
 
 public class LogfileParserEditPanel
         extends AbstractConfigPanel
-        implements ListSelectionListener
+        implements ListSelectionListener, Vetoable
 {
 
     private JXList rowList;
@@ -62,10 +66,12 @@ public class LogfileParserEditPanel
     private JCheckBox columnInitiallyHidden;
     private JXTextField columnParameter;
     private LogfileColumnModel columnModel;
+    private AbstractAction columnNewAction;
     private AbstractAction columnDeleteAction;
     private AbstractAction columnCopyAction;
     private AbstractAction columnMoveUpAction;
     private AbstractAction columnMoveDownAction;
+    private boolean columnDirty = false;
 
     public LogfileParserEditPanel()
     {
@@ -82,6 +88,7 @@ public class LogfileParserEditPanel
         columnModel = new LogfileColumnModel();
 
         rowList = new JXList();
+        rowList.setSelectionModel(new VetoableListSelectionModel(new DefaultListSelectionModel(), this));
         rowList.setModel(rowModel);
         rowList.setBackground(Color.WHITE);
         rowList.setOpaque(true);
@@ -125,13 +132,13 @@ public class LogfileParserEditPanel
 
         JPanel rowPanel = new JPanel();
         rowPanel.setLayout(new BorderLayout());
-        rowPanel.setBorder(new TitledBorder("Logfiles"));
+        rowPanel.setBorder(new TitledBorder("Log files"));
 
         rowPanel.add(new JScrollPane(rowList), BorderLayout.CENTER);
         rowPanel.add(createRowConfigActionBar(), BorderLayout.EAST);
         rowPanel.add(rowDetailPanel, BorderLayout.SOUTH);
 
-        getContentPanel().add(rowPanel, BorderLayout.NORTH);
+        getContentPanel().add(rowPanel, BorderLayout.CENTER);
 
         columnList = new JXList();
         columnList.setModel(columnModel);
@@ -162,9 +169,9 @@ public class LogfileParserEditPanel
                 pnl.add(createColumnListLabel(value.getColumnName(), 120));
                 pnl.add(createColumnListLabel(value.getMaxColumnSize() + "", 40));
                 pnl.add(createColumnListLabel(value.isInitiallyHidden() ? "\u2713" : "", 40));
-                pnl.add(createColumnListLabel(value.getEntryType(), 120));
+                pnl.add(createColumnListLabel(value.getEntryType(), 96));
                 pnl.add(createColumnListLabel(value.getParams() != null ? String.join(",", value.getParams()) : "",
-                                              190));
+                                              200));
 
                 return pnl;
             }
@@ -182,9 +189,10 @@ public class LogfileParserEditPanel
 
                 if ( columnList.getSelectedValues() == null || columnList.getSelectedValues().length != 1 )
                 {
-                    columnPanel.setEnabled(false);
+                    columnDetailPanel.setEnabled(false);
                 }
                 updateColumnDetailView();
+                updateEnablement();
             }
         });
 
@@ -197,8 +205,7 @@ public class LogfileParserEditPanel
         columnPanel.add(createColumnConfigActionBar(), BorderLayout.EAST);
         columnPanel.add(columnDetailPanel, BorderLayout.SOUTH);
 
-        getContentPanel().add(columnPanel, BorderLayout.CENTER);
-
+        getContentPanel().add(columnPanel, BorderLayout.SOUTH);
         updateEnablement();
     }
 
@@ -246,6 +253,7 @@ public class LogfileParserEditPanel
         columnDetailPanel.setLayout(new GridBagLayout());
         columnDetailPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
         GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(4, 4, 4, 4);
         c.anchor = GridBagConstraints.NORTHWEST;
         c.fill = GridBagConstraints.HORIZONTAL;
         c.weightx = 0.0;
@@ -265,6 +273,8 @@ public class LogfileParserEditPanel
                 LogfileColumnConfig e = (LogfileColumnConfig) columnList.getSelectedValue();
                 e.setColumnName(text);
                 columnList.repaint();
+                setColumnDirty();
+
             }
         });
         columnDetailPanel.add(createLabel("Name:"), c);
@@ -288,6 +298,8 @@ public class LogfileParserEditPanel
                 LogfileColumnConfig e = (LogfileColumnConfig) columnList.getSelectedValue();
                 e.setEntryType(text);
                 columnList.repaint();
+                setColumnDirty();
+
             }
         });
         columnType.setOuterMargin(new Insets(5, 5, 5, 5));
@@ -311,12 +323,16 @@ public class LogfileParserEditPanel
                 LogfileColumnConfig e = (LogfileColumnConfig) columnList.getSelectedValue();
                 e.setInitiallyHidden(columnInitiallyHidden.isSelected());
                 columnList.repaint();
+                setColumnDirty();
+
             }
         });
         columnDetailPanel.add(columnInitiallyHidden, c);
         c.gridx = 2;
         c.gridwidth = 1;
+        c.weightx = 0;
         columnDetailPanel.add(createLabel("Max size:"), c);
+        c.weightx = 1;
         columnMaxSize = new JXTextField();
         columnMaxSize.getDocument().addDocumentListener(new DocumentTextAdapter()
         {
@@ -329,8 +345,17 @@ public class LogfileParserEditPanel
                 }
 
                 LogfileColumnConfig e = (LogfileColumnConfig) columnList.getSelectedValue();
-                e.setMaxColumnSize(Integer.valueOf(text));
+                try
+                {
+                    e.setMaxColumnSize(Integer.parseInt(text));
+                }
+                catch ( NumberFormatException nfe )
+                {
+                    // nothing.
+                    e.setMaxColumnSize(0);
+                }
                 columnList.repaint();
+                setColumnDirty();
             }
         });
         columnMaxSize.setOuterMargin(new Insets(5, 5, 5, 5));
@@ -338,7 +363,9 @@ public class LogfileParserEditPanel
         columnDetailPanel.add(columnMaxSize, c);
         c.gridx = 0;
         c.gridy = 2;
-        columnDetailPanel.add(createLabel("Parameter"), c);
+        c.weightx = 0;
+        columnDetailPanel.add(createLabel("Parameter:"), c);
+        c.weightx = 1;
         columnParameter = new JXTextField();
         columnParameter.setOuterMargin(new Insets(5, 5, 5, 5));
         c.gridwidth = 3;
@@ -357,6 +384,7 @@ public class LogfileParserEditPanel
                 LogfileColumnConfig e = (LogfileColumnConfig) columnList.getSelectedValue();
                 e.setParams(text.split(" "));
                 columnList.repaint();
+                setColumnDirty();
             }
         });
     }
@@ -364,8 +392,135 @@ public class LogfileParserEditPanel
     private Component createColumnConfigActionBar()
     {
         JToolBar tb = new JToolBar();
+        tb.setOrientation(SwingConstants.VERTICAL);
         tb.setFloatable(false);
-        return tb;
+        tb.setLayout(new BoxLayout(tb, BoxLayout.Y_AXIS));
+
+        columnNewAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                LogfileColumnConfig entry = new LogfileColumnConfig("New column name", "NONE", 99, false);
+                columnModel.addElement(entry);
+                columnList.setSelectedValue(entry, true);
+                setColumnDirty();
+
+            }
+        };
+
+        columnDeleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                for ( int i = columnList.getSelectedIndices().length - 1; i >= 0; i-- )
+                {
+                    columnModel.remove(columnList.getSelectedIndices()[i]);
+                }
+                setColumnDirty();
+
+                updateColumnDetailView();
+                updateEnablement();
+            }
+        };
+
+        columnCopyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                for ( Object entryObj : columnList.getSelectedValues() )
+                {
+                    LogfileColumnConfig entry = (LogfileColumnConfig) entryObj;
+                    columnModel.addElement(new LogfileColumnConfig(entry.getColumnName(),
+                                                                   entry.getEntryType(),
+                                                                   entry.getMaxColumnSize(),
+                                                                   entry.isInitiallyHidden(),
+                                                                   entry.getParams()));
+                }
+                setColumnDirty();
+                columnList.repaint();
+            }
+        };
+
+        columnMoveUpAction = new AbstractAction("Move up", new ImageIcon("./images/arrowUp.png"))
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                List<Integer> newSelectedIndices = new ArrayList<>();
+                for ( int i = columnList.getSelectedIndices().length - 1; i >= 0; i-- )
+                {
+                    int newTopIndex = columnList.getSelectedIndices()[i];
+                    if ( newTopIndex == 0 )
+                    {
+                        continue;
+                    }
+                    int newBottomIndex = newTopIndex - 1;
+
+                    columnModel.swapElements(newTopIndex, newBottomIndex);
+                    newSelectedIndices.add(newBottomIndex);
+                }
+                if ( !newSelectedIndices.isEmpty() )
+                {
+                    setColumnDirty();
+                    columnList.setSelectedIndices(newSelectedIndices.stream().mapToInt(i -> i).toArray());
+                }
+
+                columnList.repaint();
+            }
+        };
+
+        columnMoveDownAction = new AbstractAction("Move down", new ImageIcon("./images/arrowDown.png"))
+        {
+
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                List<Integer> newSelectedIndices = new ArrayList<>();
+                for ( int i = 0; i < columnList.getSelectedIndices().length; i++ )
+                {
+                    int newBottomIndex = columnList.getSelectedIndices()[i];
+                    if ( newBottomIndex >= columnModel.size() )
+                    {
+                        continue;
+                    }
+                    int newTopIndex = newBottomIndex + 1;
+
+                    columnModel.swapElements(newTopIndex, newBottomIndex);
+                    newSelectedIndices.add(newTopIndex);
+                }
+                if ( !newSelectedIndices.isEmpty() )
+                {
+                    setColumnDirty();
+                    columnList.setSelectedIndices(newSelectedIndices.stream().mapToInt(i -> i).toArray());
+                }
+                columnList.repaint();
+            }
+        };
+
+        tb.add(columnNewAction);
+        tb.add(columnDeleteAction);
+        tb.add(columnCopyAction);
+        tb.add(columnMoveUpAction);
+        tb.add(columnMoveDownAction);
+
+        columnDeleteAction.setEnabled(false);
+        columnMoveUpAction.setEnabled(false);
+        columnMoveDownAction.setEnabled(false);
+        JPanel pnl = new JPanel();
+        pnl.setLayout(new BorderLayout());
+        pnl.add(tb, BorderLayout.CENTER);
+        return pnl;
+    }
+
+    private void setColumnDirty()
+    {
+        columnDirty = true;
     }
 
     private JPanel createRowConfigActionBar()
@@ -515,7 +670,7 @@ public class LogfileParserEditPanel
 
     private JLabel createLabel(String text)
     {
-        JXLabel lbl = new JXLabel(text);
+        JXLabel lbl = new JXLabel(text + " ");
         lbl.setHorizontalAlignment(SwingConstants.LEADING);
         return lbl;
     }
@@ -523,7 +678,6 @@ public class LogfileParserEditPanel
     @Override
     public void valueChanged(ListSelectionEvent e)
     {
-
         if ( e.getValueIsAdjusting() )
         {
             return;
@@ -540,6 +694,10 @@ public class LogfileParserEditPanel
         {
             columnPanel.setEnabled(false);
         }
+        else
+        {
+            columnPanel.setEnabled(true);
+        }
 
         columnModel.clear();
         LogfileRowConfig cfg = (LogfileRowConfig) rowList.getSelectedValues()[0];
@@ -548,6 +706,8 @@ public class LogfileParserEditPanel
         {
             columnModel.addElement(colCfg);
         }
+        columnList.clearSelection();
+        updateColumnDetailView();
     }
 
     private void updateRowConfigDetailView()
@@ -573,17 +733,87 @@ public class LogfileParserEditPanel
         rowDetailPanel.setEnabled(rowList.getSelectedValues().length == 1);
         rowDeleteAction.setEnabled(rowList.getSelectedValues().length > 0);
         rowCopyAction.setEnabled(rowList.getSelectedValues().length > 0);
+
+        columnDeleteAction.setEnabled(columnList.getSelectedValues().length > 0);
+        columnDetailPanel.setEnabled(columnList.getSelectedValues().length == 1);
+        columnCopyAction.setEnabled(columnList.getSelectedValues().length > 0);
+        columnMoveUpAction.setEnabled(columnList.getSelectedValues().length > 0);
+        columnMoveDownAction.setEnabled(columnList.getSelectedValues().length > 0);
+    }
+
+    @Override
+    public boolean veto()
+    {
+        if ( columnDirty )
+        {
+            saveColumnChanges();
+        }
+        return false;
+    }
+
+    private void saveColumnChanges()
+    {
+        List<LogfileColumnConfig> cm = columnModel.getEntries();
+        ((LogfileRowConfig) rowList.getSelectedValue()).setEntries(cm.toArray(new LogfileColumnConfig[cm.size()]));
+        columnDirty = false;
+    }
+
+    public List<LogfileRowConfig> getEntries()
+    {
+        return rowModel.getEntries();
+    }
+
+    @Override
+    protected void fireDialogClosed(boolean isCancelled)
+    {
+        if ( !isCancelled )
+        {
+            saveColumnChanges();
+        }
+
+        super.fireDialogClosed(isCancelled);
     }
 
     private class LogfileRowModel
             extends DefaultListModel<LogfileRowConfig>
     {
+        public List<LogfileRowConfig> getEntries()
+        {
+            List<LogfileRowConfig> list = new ArrayList<>();
+            for ( int i = 0; i < getSize(); i++ )
+            {
+                list.add(get(i));
+            }
 
+            return list;
+        }
     }
 
     private class LogfileColumnModel
             extends DefaultListModel<LogfileColumnConfig>
     {
+        public List<LogfileColumnConfig> getEntries()
+        {
+            List<LogfileColumnConfig> list = new ArrayList<>();
+            for ( int i = 0; i < getSize(); i++ )
+            {
+                list.add(get(i));
+            }
 
+            return list;
+        }
+
+        void swapElements(int i1, int i2)
+        {
+            if ( i1 == i2 || i1 >= size() || i2 >= size() )
+            {
+                return;
+            }
+
+            LogfileColumnConfig c1 = getElementAt(i1);
+            LogfileColumnConfig c2 = getElementAt(i2);
+            set(i2, c1);
+            set(i1, c2);
+        }
     }
 }

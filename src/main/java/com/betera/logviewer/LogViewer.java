@@ -158,7 +158,8 @@ public class LogViewer
                 {
                     savePreferences();
                     MavenConfigManager.getInstance().saveMavenConfig();
-                    Debug.printStatistics();
+                    HighlightManager.getInstance().saveHighlightConfig();
+                    LogfileParser.getInstance().saveConfig();
                 }
                 catch ( IOException e1 )
                 {

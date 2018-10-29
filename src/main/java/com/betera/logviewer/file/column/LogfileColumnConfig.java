@@ -26,7 +26,7 @@ public class LogfileColumnConfig
 
     public int getMaxColumnSize()
     {
-        return maxColumnSize > 0 ? maxColumnSize : 99999;
+        return maxColumnSize;
     }
 
     public void setMaxColumnSize(int maxColumnSize)
@@ -93,4 +93,8 @@ public class LogfileColumnConfig
         return getColumnName();
     }
 
+    public LogfileColumnConfig copy()
+    {
+        return new LogfileColumnConfig(columnName, entryType, maxColumnSize, initiallyHidden, params);
+    }
 }
