@@ -149,12 +149,19 @@ public class MavenConfigManager
             out.println("clean=" + MavenManager.getInstance().getDoCleanCheckBox().isSelected());
             out.println("useProfile=" + MavenManager.getInstance().getUseProfileCheckBox().isSelected());
             out.println("forceUpdate=" + MavenManager.getInstance().getForceUpdateComboBox().isSelected());
-            out.println(
-                    "deploy=" + ((MavenDeployment) MavenManager.getInstance().getDeploymentComboBox().getSelectedItem())
-                            .getDeploymentName());
-            out.println("project=" + ((MavenProject) MavenManager.getInstance()
-                    .getProjectComboBox()
-                    .getSelectedItem()).getProjectName());
+            MavenDeployment depl =
+                    ((MavenDeployment) MavenManager.getInstance().getDeploymentComboBox().getSelectedItem());
+
+            if ( depl != null )
+            {
+                out.println("deploy=" + depl.getDeploymentName());
+            }
+
+            MavenProject proj = ((MavenProject) MavenManager.getInstance().getProjectComboBox().getSelectedItem());
+            if ( proj != null )
+            {
+                out.println("project=" + proj.getProjectName());
+            }
             out.println("goal=" + MavenManager.getInstance().getGoalComboBox().getSelectedItem());
             out.println("profile=" + MavenManager.getInstance().getProfileTextField().getText());
         }
@@ -167,6 +174,11 @@ public class MavenConfigManager
     public void readConfig()
     {
         File f = new File("maven.config");
+        if ( !f.exists() )
+        {
+            return;
+        }
+
         getProjects().clear();
         getDeployments().clear();
         try
@@ -232,8 +244,13 @@ public class MavenConfigManager
                     for ( int i = 0; i < 8; i++ )
                     {
                         line = in.readLine();
+                        if ( line == null )
+                        {
+                            break;
+                        }
                         String var = line.substring(0, line.indexOf('='));
                         String param = line.substring(var.length() + 1);
+                        boolean breakOutOfFor = false;
                         switch ( var )
                         {
                             case "project":
@@ -260,6 +277,12 @@ public class MavenConfigManager
                             case "forceUpdate":
                                 forceUpdate = param.equalsIgnoreCase("true");
                                 break;
+                            default:
+                                breakOutOfFor = true;
+                        }
+                        if ( breakOutOfFor )
+                        {
+                            break;
                         }
                     }
 

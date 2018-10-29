@@ -437,6 +437,14 @@ public class JTextPaneLogfile
             }
         });
 
+        tb.add(new AbstractAction("Refresh", new ImageIcon("./images/refresh.png"))
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+                initReaderThread();
+            }
+        });
         tb.add(createSeparator());
         tb.add(new AbstractAction("Clear file", new ImageIcon("./images/clearFile.png"))
         {
