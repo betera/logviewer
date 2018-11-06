@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui.fileviewer;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.LogfileConfiguration;
@@ -51,8 +52,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
@@ -352,7 +351,7 @@ public class JTextPaneLogfile
         tb.setFloatable(false);
 
         tb.add(createSeparator());
-        tb.add(new AbstractAction("Pack table", new ImageIcon("./images/pack.png"))
+        tb.add(new AbstractAction("Pack table", Icons.packIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -368,10 +367,8 @@ public class JTextPaneLogfile
                 }
             }
         });
-        Icon lineWrapOnIcon = new ImageIcon("./images/wrapOn.png");
-        Icon lineWrapOffIcon = new ImageIcon("./images/wrapOff.png");
 
-        tb.add(new AbstractAction("Toggle Line-Wrap", lineWrapOnIcon)
+        tb.add(new AbstractAction("Toggle Line-Wrap", Icons.wrapOnIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -380,13 +377,13 @@ public class JTextPaneLogfile
                 {
                     lineWrap = false;
                     docTable.setHorizontalScrollEnabled(true);
-                    putValue(Action.SMALL_ICON, lineWrapOnIcon);
+                    putValue(Action.SMALL_ICON, Icons.wrapOnIcon);
                 }
                 else
                 {
                     lineWrap = true;
                     docTable.setHorizontalScrollEnabled(false);
-                    putValue(Action.SMALL_ICON, lineWrapOffIcon);
+                    putValue(Action.SMALL_ICON, Icons.wrapOffIcon);
                 }
                 if ( followTail )
                 {
@@ -401,14 +398,11 @@ public class JTextPaneLogfile
 
     private JToolBar createSharedToolbar()
     {
-        final ImageIcon tableIcon = new ImageIcon("./images/table.png");
-        final ImageIcon textPaneIcon = new ImageIcon("./images/textPane.png");
-
         JToolBar tb = new JToolBar();
         tb.setLayout(new FlowLayout(FlowLayout.LEADING, 4, 0));
         tb.setFloatable(false);
 
-        tb.add(new AbstractAction("Table view", new ImageIcon("./images/table.png"))
+        tb.add(new AbstractAction("Table view", Icons.tableIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -421,7 +415,7 @@ public class JTextPaneLogfile
                     leftTBPanel.remove(contextToolBar);
                     contextToolBar = createTextViewToolbar();
                     leftTBPanel.add(contextToolBar);
-                    putValue(Action.SMALL_ICON, tableIcon);
+                    putValue(Action.SMALL_ICON, Icons.tableIcon);
                 }
                 else
                 {
@@ -430,7 +424,7 @@ public class JTextPaneLogfile
                     leftTBPanel.remove(contextToolBar);
                     contextToolBar = createTableViewToolbar();
                     leftTBPanel.add(contextToolBar);
-                    putValue(Action.SMALL_ICON, textPaneIcon);
+                    putValue(Action.SMALL_ICON, Icons.textPaneIcon);
                 }
                 leftTBPanel.revalidate();
                 leftTBPanel.repaint();
@@ -438,7 +432,7 @@ public class JTextPaneLogfile
         });
 
         tb.add(createSeparator());
-        tb.add(new AbstractAction("Clear file", new ImageIcon("./images/clearFile.png"))
+        tb.add(new AbstractAction("Clear file", Icons.clearFileIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -492,21 +486,20 @@ public class JTextPaneLogfile
         logRootToolBar.add(leftTBPanel, BorderLayout.WEST);
         logRootToolBar.add(rightTB, BorderLayout.EAST);
 
-        Icon toolPanelOn = new ImageIcon("./images/expand.png");
-        Icon toolPanelOff = new ImageIcon("./images/collapse.png");
-        rightTB.add(new AbstractAction("Toggle tool panel", toolPanelOn)
+        rightTB.add(new AbstractAction("Toggle tool panel", Icons.expandIcon)
         {
             int divider = -1;
 
             @Override
             public void actionPerformed(ActionEvent e)
             {
+                int value = scrollPane.getVerticalScrollBar().getValue();
                 if ( toolsPanel.isVisible() )
                 {
                     divider = splitter.getDividerLocation();
                 }
                 toolsPanel.setVisible(!toolsPanel.isVisible());
-                putValue(Action.SMALL_ICON, toolsPanel.isVisible() ? toolPanelOff : toolPanelOn);
+                putValue(Action.SMALL_ICON, toolsPanel.isVisible() ? Icons.collapseIcon : Icons.expandIcon);
                 if ( toolsPanel.isVisible() )
                 {
                     if ( divider == -1 )
@@ -516,7 +509,7 @@ public class JTextPaneLogfile
 
                     splitter.setDividerLocation(divider);
                 }
-
+                scrollPane.getVerticalScrollBar().setValue(value);
             }
         });
 

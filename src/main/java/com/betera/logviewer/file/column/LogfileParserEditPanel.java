@@ -1,5 +1,6 @@
 package com.betera.logviewer.file.column;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.ui.EnablementInheritingJPanel;
 import com.betera.logviewer.ui.edit.AbstractConfigPanel;
 import com.betera.logviewer.ui.edit.DocumentTextAdapter;
@@ -25,7 +26,6 @@ import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -396,7 +396,7 @@ public class LogfileParserEditPanel
         tb.setFloatable(false);
         tb.setLayout(new BoxLayout(tb, BoxLayout.Y_AXIS));
 
-        columnNewAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
+        columnNewAction = new AbstractAction("New", Icons.createIcon)
         {
 
             @Override
@@ -410,7 +410,7 @@ public class LogfileParserEditPanel
             }
         };
 
-        columnDeleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        columnDeleteAction = new AbstractAction("Delete", Icons.deleteIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -426,7 +426,7 @@ public class LogfileParserEditPanel
             }
         };
 
-        columnCopyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        columnCopyAction = new AbstractAction("Copy", Icons.copyIcon)
         {
 
             @Override
@@ -446,7 +446,7 @@ public class LogfileParserEditPanel
             }
         };
 
-        columnMoveUpAction = new AbstractAction("Move up", new ImageIcon("./images/arrowUp.png"))
+        columnMoveUpAction = new AbstractAction("Move up", Icons.arrowUpIcon)
         {
 
             @Override
@@ -475,7 +475,7 @@ public class LogfileParserEditPanel
             }
         };
 
-        columnMoveDownAction = new AbstractAction("Move down", new ImageIcon("./images/arrowDown.png"))
+        columnMoveDownAction = new AbstractAction("Move down", Icons.arrowDownIcon)
         {
 
             @Override
@@ -529,7 +529,7 @@ public class LogfileParserEditPanel
         toolbar.setOrientation(SwingConstants.VERTICAL);
         toolbar.setFloatable(false);
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-        Action newAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
+        Action newAction = new AbstractAction("New", Icons.createIcon)
         {
 
             @Override
@@ -542,7 +542,7 @@ public class LogfileParserEditPanel
             }
         };
 
-        rowDeleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        rowDeleteAction = new AbstractAction("Delete", Icons.deleteIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -557,7 +557,7 @@ public class LogfileParserEditPanel
             }
         };
 
-        rowCopyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        rowCopyAction = new AbstractAction("Copy", Icons.copyIcon)
         {
 
             @Override

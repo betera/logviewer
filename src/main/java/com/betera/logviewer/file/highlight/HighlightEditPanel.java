@@ -1,5 +1,6 @@
 package com.betera.logviewer.file.highlight;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.ui.edit.AbstractConfigPanel;
 import com.betera.logviewer.ui.edit.DocumentTextAdapter;
 import java.awt.BorderLayout;
@@ -23,7 +24,6 @@ import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -95,7 +95,7 @@ public class HighlightEditPanel
         toolbar.setOrientation(SwingConstants.VERTICAL);
         toolbar.setFloatable(false);
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-        Action newAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
+        Action newAction = new AbstractAction("New", Icons.createIcon)
         {
 
             @Override
@@ -113,7 +113,7 @@ public class HighlightEditPanel
             }
         };
 
-        deleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        deleteAction = new AbstractAction("Delete", Icons.deleteIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -128,7 +128,7 @@ public class HighlightEditPanel
             }
         };
 
-        copyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        copyAction = new AbstractAction("Copy", Icons.copyIcon)
         {
 
             @Override

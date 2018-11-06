@@ -1,5 +1,9 @@
 package com.betera.logviewer.ui.maven;
 
+import com.betera.logviewer.Icons;
+import com.betera.logviewer.ui.EnablementInheritingJPanel;
+import com.betera.logviewer.ui.action.BrowseFilesystemAction;
+import com.betera.logviewer.ui.action.FileChooserCallbackAdapter;
 import com.betera.logviewer.ui.edit.AbstractConfigPanel;
 import com.betera.logviewer.ui.edit.DocumentTextAdapter;
 import java.awt.BorderLayout;
@@ -11,13 +15,14 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -57,7 +62,6 @@ public class MavenEditPanel
     public MavenEditPanel()
     {
         super("Maven");
-        setPreferredSize(new Dimension(600, 820));
 
         initDetailView();
         deplModel = new DeploymentModel();
@@ -185,20 +189,18 @@ public class MavenEditPanel
         toolbar.setOrientation(SwingConstants.VERTICAL);
         toolbar.setFloatable(false);
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-        Action newAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
+        Action newAction = new AbstractAction("New", Icons.createIcon)
         {
-
             @Override
             public void actionPerformed(ActionEvent e)
             {
                 MavenDeployment entry = new MavenDeployment("New deployment", "Path to wildfly");
                 deplModel.addElement(entry);
                 deplList.setSelectedValue(entry, true);
-
             }
         };
 
-        deplDeleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        deplDeleteAction = new AbstractAction("Delete", Icons.deleteIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -207,15 +209,13 @@ public class MavenEditPanel
                 {
                     deplModel.remove(deplList.getSelectedIndices()[i]);
                 }
-
                 updateDeploymentDetailView();
                 updateEnablement();
             }
         };
 
-        deplCopyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        deplCopyAction = new AbstractAction("Copy", Icons.copyIcon)
         {
-
             @Override
             public void actionPerformed(ActionEvent e)
             {
@@ -245,7 +245,7 @@ public class MavenEditPanel
         toolbar.setOrientation(SwingConstants.VERTICAL);
         toolbar.setFloatable(false);
         toolbar.setLayout(new BoxLayout(toolbar, BoxLayout.Y_AXIS));
-        Action newAction = new AbstractAction("New", new ImageIcon("./images/create.png"))
+        Action newAction = new AbstractAction("New", Icons.createIcon)
         {
 
             @Override
@@ -255,7 +255,7 @@ public class MavenEditPanel
             }
         };
 
-        projDeleteAction = new AbstractAction("Delete", new ImageIcon("./images/trashbin.png"))
+        projDeleteAction = new AbstractAction("Delete", Icons.deleteIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -270,7 +270,7 @@ public class MavenEditPanel
             }
         };
 
-        projCopyAction = new AbstractAction("Copy", new ImageIcon("./images/copy.png"))
+        projCopyAction = new AbstractAction("Copy", Icons.copyIcon)
         {
 
             @Override
@@ -304,18 +304,7 @@ public class MavenEditPanel
 
     private void initDetailView()
     {
-        deplDetailPanel = new JPanel()
-        {
-            @Override
-            public void setEnabled(boolean enabled)
-            {
-                super.setEnabled(enabled);
-                for ( Component comp : getComponents() )
-                {
-                    comp.setEnabled(enabled);
-                }
-            }
-        };
+        deplDetailPanel = new EnablementInheritingJPanel();
         deplDetailPanel.setLayout(new GridBagLayout());
         deplDetailPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
         deplName = new JXTextField();
@@ -332,6 +321,7 @@ public class MavenEditPanel
 
                 MavenDeployment e = (MavenDeployment) deplList.getSelectedValue();
                 e.setDeploymentName(text);
+                deplList.repaint();
             }
         });
         deplPath = new JXTextField();
@@ -348,6 +338,7 @@ public class MavenEditPanel
 
                 MavenDeployment e = (MavenDeployment) deplList.getSelectedValue();
                 e.setDeploymentPath(text);
+                deplList.repaint();
             }
         });
 
@@ -357,33 +348,39 @@ public class MavenEditPanel
         c1.gridx = 0;
         c1.gridwidth = 1;
         c1.fill = GridBagConstraints.BOTH;
-        c1.anchor = GridBagConstraints.NORTHWEST;
+        c1.anchor = GridBagConstraints.WEST;
 
         GridBagConstraints c2 = new GridBagConstraints();
         c2.weightx = 0.9;
         c2.insets = new Insets(4, 4, 4, 4);
         c2.gridx = 1;
-        c2.gridwidth = GridBagConstraints.REMAINDER;
+        c2.gridwidth = 1;
         c2.fill = GridBagConstraints.BOTH;
-        c2.anchor = GridBagConstraints.NORTHWEST;
+        c2.anchor = GridBagConstraints.WEST;
+
+        GridBagConstraints c3 = new GridBagConstraints();
+        c3.weightx = 0.0;
+        c3.insets = new Insets(4, 4, 4, 4);
+        c3.gridx = 2;
+        c3.gridy = 1;
+        c3.gridwidth = GridBagConstraints.REMAINDER;
+        c3.fill = GridBagConstraints.NONE;
+        c3.anchor = GridBagConstraints.EAST;
 
         deplDetailPanel.add(createLabel("Name:"), c1);
         deplDetailPanel.add(deplName, c2);
         deplDetailPanel.add(createLabel("Wildfly path:"), c1);
         deplDetailPanel.add(deplPath, c2);
-
-        projDetailPanel = new JPanel()
+        deplDetailPanel.add(createActionButton(new BrowseFilesystemAction(new FileChooserCallbackAdapter()
         {
             @Override
-            public void setEnabled(boolean enabled)
+            public void elementSelected(File anElement)
             {
-                super.setEnabled(enabled);
-                for ( Component comp : getComponents() )
-                {
-                    comp.setEnabled(enabled);
-                }
+                deplPath.setText(anElement.getAbsolutePath());
             }
-        };
+        })), c3);
+
+        projDetailPanel = new EnablementInheritingJPanel();
         projDetailPanel.setLayout(new GridBagLayout());
         projDetailPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
         projName = new JXTextField();
@@ -400,6 +397,7 @@ public class MavenEditPanel
 
                 MavenProject e = (MavenProject) projList.getSelectedValue();
                 e.setProjectName(text);
+                deplList.repaint();
             }
         });
         projRoot = new JXTextField();
@@ -416,6 +414,7 @@ public class MavenEditPanel
 
                 MavenProject e = (MavenProject) projList.getSelectedValue();
                 e.setRootDir(text);
+                projList.repaint();
             }
         });
         projEar = new JXTextField();
@@ -432,31 +431,40 @@ public class MavenEditPanel
 
                 MavenProject e = (MavenProject) projList.getSelectedValue();
                 e.setEarPath(text);
+                projList.repaint();
             }
         });
-
-        c1 = new GridBagConstraints();
-        c1.weightx = 0.1;
-        c1.insets = new Insets(4, 4, 4, 4);
-        c1.gridx = 0;
-        c1.gridwidth = 1;
-        c1.fill = GridBagConstraints.BOTH;
-        c1.anchor = GridBagConstraints.NORTHWEST;
-
-        c2 = new GridBagConstraints();
-        c2.weightx = 0.9;
-        c2.insets = new Insets(4, 4, 4, 4);
-        c2.gridx = 1;
-        c2.gridwidth = GridBagConstraints.REMAINDER;
-        c2.fill = GridBagConstraints.BOTH;
-        c2.anchor = GridBagConstraints.NORTHWEST;
 
         projDetailPanel.add(createLabel("Name:"), c1);
         projDetailPanel.add(projName, c2);
         projDetailPanel.add(createLabel("Root folder:"), c1);
         projDetailPanel.add(projRoot, c2);
+        projDetailPanel.add(createActionButton(new BrowseFilesystemAction(new FileChooserCallbackAdapter()
+        {
+            @Override
+            public void elementSelected(File anElement)
+            {
+                projRoot.setText(anElement.getAbsolutePath());
+            }
+        })), c3);
         projDetailPanel.add(createLabel("EAR file:"), c1);
         projDetailPanel.add(projEar, c2);
+        c3.gridy = 2;
+        projDetailPanel.add(createActionButton(new BrowseFilesystemAction(new FileChooserCallbackAdapter()
+        {
+            @Override
+            public int getFileSelectionMode()
+            {
+                return JFileChooser.FILES_ONLY;
+            }
+
+            @Override
+            public void elementSelected(File anElement)
+            {
+                projEar.setText(anElement.getAbsolutePath());
+            }
+        })), c3);
+
     }
 
     private JLabel createLabel(String text)

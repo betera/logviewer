@@ -7,6 +7,7 @@ import com.betera.logviewer.file.column.LogfileParser;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.CollapsiblePanel;
 import com.betera.logviewer.ui.LogViewerLookAndFeel;
+import com.betera.logviewer.ui.action.AboutAction;
 import com.betera.logviewer.ui.action.EditAction;
 import com.betera.logviewer.ui.action.OpenFileAction;
 import com.betera.logviewer.ui.maven.MavenConfigManager;
@@ -16,12 +17,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -35,10 +32,8 @@ import java.util.List;
 import java.util.Properties;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -48,11 +43,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
 
 public class LogViewer
@@ -62,10 +54,10 @@ public class LogViewer
 
     public static final String PROP_MAVEN_LOGFILE = "pref.mavenLogfile";
     public static final String PROP_LOGFILES = "pref.openLogfiles";
+    public static final String VERSION = "1.0";
     private static final Object PROP_FOLLOW_TAIL = "pref.followTail";
     private static final Object PROP_FOCUS_ACTIVE = "pref.focusActive";
     private static final int MAX_RECENT_FILE_SIZE = 10;
-    private static final String VERSION = "1.0";
     public static String mavenLogfile;
     private static JFrame mainFrame;
     private static GlassPane mfGlassPane;
@@ -77,23 +69,19 @@ public class LogViewer
     private List<String> recentFiles;
 
     public LogViewer()
-            throws
-            ClassNotFoundException,
-            UnsupportedLookAndFeelException,
-            InstantiationException,
-            IllegalAccessException,
-            IOException
+
     {
-        init();
+        try
+        {
+            init();
+        }
+        catch ( Exception e )
+        {
+            handleException(e);
+        }
     }
 
     public static void main(String[] args)
-            throws
-            ClassNotFoundException,
-            UnsupportedLookAndFeelException,
-            InstantiationException,
-            IllegalAccessException,
-            IOException
     {
         new LogViewer();
     }
@@ -155,8 +143,8 @@ public class LogViewer
         mainFrame = new JFrame("LogViewer v" + VERSION);
         mfGlassPane = new GlassPane();
         mainFrame.setGlassPane(mfGlassPane);
-        ImageIcon icon = new ImageIcon("./images/logviewer.png");
-        mainFrame.setIconImage(icon.getImage());
+
+        mainFrame.setIconImage(Icons.logViewerIcon.getImage());
         mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         mainFrame.addWindowListener(new WindowAdapter()
         {
@@ -257,53 +245,14 @@ public class LogViewer
 
         menuBar.add(fileMenu);
 
-        JMenu editMenu = new JMenu("Edit");
+        JMenu editMenu = new JMenu("Options");
         editMenu.add(new EditAction("Edit Highlighting", HighlightManager.getInstance()));
         editMenu.add(new EditAction("Edit Maven Settings", MavenConfigManager.getInstance()));
         editMenu.add(new EditAction("Edit Column Settings", LogfileParser.getInstance()));
         menuBar.add(editMenu);
 
         JMenu aboutMenu = new JMenu("About");
-        aboutMenu.add(new JMenuItem(new AbstractAction("About")
-        {
-
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                JLabel lbl = new JLabel();
-                ImageIcon ic = new ImageIcon("./images/codemaster.jpg");
-                lbl.setIcon(ic);
-                lbl.setPreferredSize(new Dimension(ic.getImage().getWidth(null), ic.getImage().getHeight(null)));
-
-                JDialog dlg = new JDialog();
-                dlg.setUndecorated(true);
-                dlg.getContentPane().setLayout(new GridBagLayout());
-                GridBagConstraints c = new GridBagConstraints();
-                c.gridwidth = GridBagConstraints.REMAINDER;
-                c.weightx = 1.0;
-                c.anchor = GridBagConstraints.NORTH;
-                c.fill = GridBagConstraints.BOTH;
-                dlg.getContentPane().add(lbl, c);
-                JLabel lbl2 = new JLabel("<html><center><div style='font-size:24px'>LogViewer " + VERSION
-                                                 + "</div>(c) Michael Bessert, 2018</center></html>");
-                lbl2.setHorizontalAlignment(SwingConstants.CENTER);
-                lbl2.setBorder(new EmptyBorder(10, 10, 10, 10));
-                dlg.getContentPane().add(lbl2, c);
-                dlg.pack();
-                ((JComponent) dlg.getContentPane()).setBorder(new EtchedBorder());
-                dlg.setVisible(true);
-                dlg.setLocationRelativeTo(mainFrame);
-                dlg.addMouseListener(new MouseAdapter()
-                {
-                    @Override
-                    public void mouseClicked(MouseEvent e)
-                    {
-                        dlg.setVisible(false);
-                        dlg.dispose();
-                    }
-                });
-            }
-        }));
+        aboutMenu.add(new JMenuItem(new AboutAction()));
         menuBar.add(aboutMenu);
 
         return menuBar;
@@ -432,8 +381,8 @@ public class LogViewer
 
         followTailCheckbox = new JCheckBox("");
         followTailCheckbox.setToolTipText("Follow tail");
-        followTailCheckbox.setIcon(new ImageIcon("./images/tail.png"));
-        followTailCheckbox.setSelectedIcon(new ImageIcon("./images/tail_checked.png"));
+        followTailCheckbox.setIcon(Icons.tailIcon);
+        followTailCheckbox.setSelectedIcon(Icons.tailCheckedIcon);
         followTailCheckbox.addItemListener(e -> {
             boolean doFollowTail = e.getStateChange() == ItemEvent.SELECTED;
             logContainer.fireFollowTailChanged(doFollowTail, null);
@@ -442,8 +391,8 @@ public class LogViewer
 
         focusActiveCheckbox = new JCheckBox("");
         focusActiveCheckbox.setToolTipText("Focus active window");
-        focusActiveCheckbox.setIcon(new ImageIcon("./images/focus.png"));
-        focusActiveCheckbox.setSelectedIcon(new ImageIcon("./images/focus_checked.png"));
+        focusActiveCheckbox.setIcon(Icons.focusIcon);
+        focusActiveCheckbox.setSelectedIcon(Icons.focusCheckedIcon);
 
         toolbar.add(followTailCheckbox);
         toolbar.add(focusActiveCheckbox);

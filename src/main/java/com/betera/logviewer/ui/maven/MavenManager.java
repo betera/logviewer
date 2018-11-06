@@ -183,7 +183,9 @@ public class MavenManager
 
         try
         {
-            String mvnLf = LogViewer.mavenLogfile.isEmpty() ? "" : " ^> " + LogViewer.mavenLogfile;
+            String mvnLf = LogViewer.mavenLogfile == null || LogViewer.mavenLogfile.isEmpty()
+                    ? ""
+                    : " ^> " + LogViewer.mavenLogfile;
             Runtime.getRuntime().exec("cmd /c start /min \"\" mavenRunner.bat" + mvnLf,
                                       envVars.toArray(new String[envVars.size()]));
         }

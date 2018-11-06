@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui.action;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.file.Logfile;
 import com.betera.logviewer.file.LogfilesContainer;
 import com.betera.logviewer.ui.maven.MavenDeployment;
@@ -7,7 +8,6 @@ import com.betera.logviewer.ui.maven.MavenManager;
 import com.betera.logviewer.ui.maven.MavenProject;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
 
 public class RunMavenAction
         extends AbstractAction
@@ -27,7 +27,7 @@ public class RunMavenAction
 
     public RunMavenAction(LogfilesContainer container)
     {
-        super("", new ImageIcon("./images/play.png"));
+        super("", Icons.playIcon);
         this.container = container;
     }
 

@@ -1,11 +1,11 @@
 package com.betera.logviewer.ui.action;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.file.LogfilesContainer;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import javax.swing.AbstractAction;
-import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 
 public class OpenFileAction
@@ -18,7 +18,7 @@ public class OpenFileAction
 
     public OpenFileAction(LogViewer logViewer, LogfilesContainer container)
     {
-        super("Open file...", new ImageIcon("./images/open.png"));
+        super("Open file...", Icons.openIcon);
         this.container = container;
         this.logViewer = logViewer;
     }

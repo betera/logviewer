@@ -1,5 +1,6 @@
 package com.betera.logviewer.ui;
 
+import com.betera.logviewer.Icons;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -10,7 +11,6 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -23,8 +23,6 @@ public class CollapsiblePanel
 
     private JButton collapseButton;
     private Action collapseAction;
-    private ImageIcon collapseIcon;
-    private ImageIcon expandIcon;
     private JPanel spacerPanel;
 
     public CollapsiblePanel(JComponent component, String title, boolean initiallyExpanded)
@@ -35,34 +33,13 @@ public class CollapsiblePanel
 
         setBorder(BorderFactory.createTitledBorder(new LineBorder(Color.LIGHT_GRAY), title));
 
-        collapseIcon = new ImageIcon("./images/collapse.png");
-        expandIcon = new ImageIcon("./images/expand.png");
-
-        collapseAction = new AbstractAction("Collapse", collapseIcon)
-        {
-            @Override
-            public void actionPerformed(ActionEvent e)
-            {
-                if ( this.getValue(Action.SMALL_ICON) == collapseIcon )
-                {
-                    remove(component);
-                    add(spacerPanel, BorderLayout.CENTER);
-                    this.putValue(Action.SMALL_ICON, expandIcon);
-                }
-                else
-                {
-                    remove(spacerPanel);
-                    add(component, BorderLayout.CENTER);
-                    this.putValue(Action.SMALL_ICON, collapseIcon);
-                }
-                revalidate();
-            }
-        };
+        collapseAction = new CollapseAction(component);
         collapseButton = new JButton(collapseAction);
         collapseButton.setBorderPainted(false);
         collapseButton.setContentAreaFilled(false);
         collapseButton.setText("");
-        collapseButton.setPreferredSize(new Dimension(collapseIcon.getIconWidth(), collapseIcon.getIconHeight()));
+        collapseButton.setPreferredSize(new Dimension(Icons.collapseIcon.getIconWidth(),
+                                                      Icons.collapseIcon.getIconHeight()));
 
         setLayout(new BorderLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -87,7 +64,7 @@ public class CollapsiblePanel
         c.weighty = 1.0;
         c.gridx = 1;
         c.gridy = 0;
-        spacerPanel.setPreferredSize(new Dimension(calculateTextWidth(title) - collapseIcon.getIconWidth(),
+        spacerPanel.setPreferredSize(new Dimension(calculateTextWidth(title) - Icons.collapseIcon.getIconWidth(),
                                                    component.getPreferredSize().height));
         if ( initiallyExpanded )
         {
@@ -96,7 +73,7 @@ public class CollapsiblePanel
         else
         {
             add(spacerPanel, BorderLayout.CENTER);
-            collapseAction.putValue(Action.SMALL_ICON, expandIcon);
+            collapseAction.putValue(Action.SMALL_ICON, Icons.expandIcon);
         }
     }
 
@@ -116,6 +93,36 @@ public class CollapsiblePanel
     public int getBaseline(int width, int height)
     {
         return 0;
+    }
+
+    private class CollapseAction
+            extends AbstractAction
+    {
+        private JComponent component;
+
+        CollapseAction(JComponent component)
+        {
+            super("Collapse", Icons.collapseIcon);
+            this.component = component;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e)
+        {
+            if ( this.getValue(Action.SMALL_ICON) == Icons.collapseIcon )
+            {
+                remove(component);
+                add(spacerPanel, BorderLayout.CENTER);
+                this.putValue(Action.SMALL_ICON, Icons.expandIcon);
+            }
+            else
+            {
+                remove(spacerPanel);
+                add(component, BorderLayout.CENTER);
+                this.putValue(Action.SMALL_ICON, Icons.collapseIcon);
+            }
+            revalidate();
+        }
     }
 
 }

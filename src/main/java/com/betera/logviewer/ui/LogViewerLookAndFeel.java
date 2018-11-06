@@ -1,7 +1,10 @@
 package com.betera.logviewer.ui;
 
 import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
+import java.awt.Component;
 import java.awt.Font;
+import java.awt.Graphics;
+import javax.swing.Icon;
 import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 
@@ -27,6 +30,9 @@ public class LogViewerLookAndFeel
 
     private void initFont()
     {
+        UIManager.put("MenuItem.arrowIcon", new EmptyIcon());
+        UIManager.put("MenuItem.checkIcon", new EmptyIcon());
+
         UIManager.put("InternalFrame.normalTitleFont", getFont(0));
         UIManager.put("TableHeader.font", getFont(0));
         UIManager.put("ToolTip.font", getFont(0));
@@ -75,6 +81,27 @@ public class LogViewerLookAndFeel
     protected Font getFont(int size)
     {
         return new Font(logViewerFontName, 0, logViewerFontSize + size);
+    }
+
+    static public class EmptyIcon
+            implements Icon
+    {
+        private int width = 0;
+        private int height = 0;
+
+        public void paintIcon(Component c, Graphics g, int x, int y)
+        {
+        }
+
+        public int getIconWidth()
+        {
+            return width;
+        }
+
+        public int getIconHeight()
+        {
+            return height;
+        }
     }
 
 }

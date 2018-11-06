@@ -1,5 +1,6 @@
 package com.betera.logviewer.file;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.LogViewer;
 import com.betera.logviewer.ui.fileviewer.JTextPaneLogfile;
 import java.awt.BorderLayout;
@@ -14,7 +15,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -244,7 +244,7 @@ public class TabBasedLogfilesContainer
             closeButton.setPreferredSize(new Dimension(20, 20));
             closeButton.setContentAreaFilled(false);
             closeButton.setBorderPainted(false);
-            closeButton.setIcon(new ImageIcon("./images/close.png"));
+            closeButton.setIcon(Icons.closeIcon);
             closeButton.addActionListener(new ActionListener()
             {
                 @Override

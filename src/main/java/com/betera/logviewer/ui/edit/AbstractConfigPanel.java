@@ -1,16 +1,16 @@
 package com.betera.logviewer.ui.edit;
 
+import com.betera.logviewer.Icons;
 import com.betera.logviewer.ui.MyWindowsButtonUI;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.ImageIcon;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,11 +24,11 @@ public class AbstractConfigPanel
     protected List<ConfigDialogClosedListener> closedListener;
     protected String title;
     private JPanel contentPanel;
+
     public AbstractConfigPanel(String title)
     {
         this.title = title;
         closedListener = new ArrayList<>();
-        setPreferredSize(new Dimension(600, 600));
         setLayout(new BorderLayout());
         setBorder(UIManager.getBorder("InternalFrame.border"));
         add(createNavigationPanel(), BorderLayout.SOUTH);
@@ -39,6 +39,15 @@ public class AbstractConfigPanel
     public String getTitle()
     {
         return title;
+    }
+
+    protected JButton createActionButton(Action anAction)
+    {
+        JButton btn = new JButton(anAction);
+        btn.setText("");
+        btn.setBorderPainted(false);
+        btn.setContentAreaFilled(false);
+        return btn;
     }
 
     public JPanel getContentPanel()
@@ -103,7 +112,7 @@ public class AbstractConfigPanel
         JButton cancelBtn = new JButton();
         cancelBtn.setContentAreaFilled(false);
         cancelBtn.setBorderPainted(false);
-        cancelBtn.setIcon(new ImageIcon("./images/cancel.png"));
+        cancelBtn.setIcon(Icons.cancelIcon);
         cancelBtn.setFocusable(false);
         cancelBtn.setUI(new MyWindowsButtonUI());
         cancelBtn.addActionListener(new ActionListener()
@@ -118,7 +127,7 @@ public class AbstractConfigPanel
         okBtn.setFocusable(false);
         okBtn.setContentAreaFilled(false);
         okBtn.setBorderPainted(false);
-        okBtn.setIcon(new ImageIcon("./images/ok.png"));
+        okBtn.setIcon(Icons.okIcon);
         okBtn.setUI(new MyWindowsButtonUI());
 
         okBtn.addActionListener(new ActionListener()
