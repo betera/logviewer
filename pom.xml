@@ -45,6 +45,8 @@
           </execution>
         </executions>
         <configuration>
+		  <finalName>logviewer</finalName>
+          <appendAssemblyId>false</appendAssemblyId>
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
