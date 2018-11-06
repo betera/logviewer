@@ -42,9 +42,15 @@ public class LogfileParser
             configs = new HashMap<>();
         }
 
+        File f = new File("columnFormatter.config");
+        if ( !f.exists() )
+        {
+            return;
+        }
+
         try
         {
-            BufferedReader in = new BufferedReader(new FileReader("columnFormatter.config"));
+            BufferedReader in = new BufferedReader(new FileReader(f));
 
             String line = in.readLine();
             while ( line != null )

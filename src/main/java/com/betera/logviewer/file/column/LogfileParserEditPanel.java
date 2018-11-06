@@ -754,7 +754,11 @@ public class LogfileParserEditPanel
     private void saveColumnChanges()
     {
         List<LogfileColumnConfig> cm = columnModel.getEntries();
-        ((LogfileRowConfig) rowList.getSelectedValue()).setEntries(cm.toArray(new LogfileColumnConfig[cm.size()]));
+        LogfileRowConfig rowConfig = ((LogfileRowConfig) rowList.getSelectedValue());
+        if ( rowConfig != null )
+        {
+            rowConfig.setEntries(cm.toArray(new LogfileColumnConfig[cm.size()]));
+        }
         columnDirty = false;
     }
 

@@ -30,6 +30,11 @@ public class HighlightManager
 
     public List<HighlightEntry> getEntries()
     {
+        if ( entryList == null )
+        {
+            entryList = new ArrayList<>();
+        }
+
         return entryList;
     }
 
@@ -53,12 +58,7 @@ public class HighlightManager
 
     public void registerHighlight(HighlightEntry entry)
     {
-        if ( entryList == null )
-        {
-            entryList = new ArrayList<>();
-        }
-
-        entryList.add(entry);
+        getEntries().add(entry);
     }
 
     public void saveHighlightConfig()
@@ -112,7 +112,13 @@ public class HighlightManager
     public void readHighlightConfig()
             throws IOException
     {
-        try (BufferedReader reader = new BufferedReader(new FileReader(new File("highlight.config"))))
+        File f = new File("highlight.config");
+        if ( !f.exists() )
+        {
+            return;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(f)))
         {
             String line = reader.readLine();
             while ( line != null )
@@ -171,7 +177,7 @@ public class HighlightManager
     {
         List<HighlightEntry> entries = new ArrayList<>();
 
-        for ( HighlightEntry entry : entryList )
+        for ( HighlightEntry entry : getEntries() )
         {
             if ( text.contains(entry.getText()) )
             {
@@ -266,10 +272,7 @@ public class HighlightManager
     @Override
     public void updateConfig()
     {
-        if ( entryList != null )
-        {
-            entryList.clear();
-        }
+        getEntries().clear();
         for ( HighlightEntry e : editPanel.getHighlightEntries() )
         {
             registerHighlight(e);
