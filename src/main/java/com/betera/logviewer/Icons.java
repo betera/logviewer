@@ -68,7 +68,15 @@ public class Icons
 
     static ImageIcon load(String iconPath)
     {
-        return new ImageIcon(Icons.class.getResource("/images/" + iconPath));
+        try
+        {
+            return new ImageIcon(Icons.class.getResource("/images/" + iconPath));
+        }
+        catch ( NullPointerException npe )
+        {
+            LogViewer.handleException(npe, "Icon \"/images/" + iconPath + "\" not found.");
+        }
+        return null;
     }
 
 }

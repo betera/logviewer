@@ -86,12 +86,21 @@ public class LogViewer
         new LogViewer();
     }
 
-    public static void handleException(Exception exc)
+    public static void handleException(Exception exc, String msg)
     {
         StringWriter sOut = new StringWriter();
         PrintWriter out = new PrintWriter(sOut);
+        if ( msg != null )
+        {
+            out.println(msg);
+        }
         exc.printStackTrace(out); // NOSONAR
         JOptionPane.showMessageDialog(null, "ERROR: " + sOut.toString());
+    }
+
+    public static void handleException(Exception exc)
+    {
+        handleException(exc, null);
     }
 
     public static JFrame getMainFrame()
