@@ -30,6 +30,7 @@ public class Icons
     public static final ImageIcon cancelIcon;
     public static final ImageIcon okIcon;
     public static final ImageIcon aboutIcon;
+    public static final ImageIcon refreshIcon;
 
     static
     {
@@ -58,6 +59,7 @@ public class Icons
         cancelIcon = load("cancel.png");
         okIcon = load("ok.png");
         aboutIcon = load("codemaster.jpg");
+        refreshIcon = load("refresh.png");
     }
 
     private Icons()

@@ -431,7 +431,7 @@ public class JTextPaneLogfile
             }
         });
 
-        tb.add(new AbstractAction("Refresh", new ImageIcon("./images/refresh.png"))
+        tb.add(new AbstractAction("Refresh", Icons.refreshIcon)
         {
             @Override
             public void actionPerformed(ActionEvent e)
