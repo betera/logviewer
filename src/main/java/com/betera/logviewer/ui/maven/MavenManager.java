@@ -87,6 +87,7 @@ public class MavenManager
         if ( goalComboBox == null )
         {
             goalComboBox = new JComboBox();
+            goalComboBox.addItem(" ");
             goalComboBox.addItem("test");
             goalComboBox.addItem("compile");
             goalComboBox.addItem("build");

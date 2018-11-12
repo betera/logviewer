@@ -1,6 +1,6 @@
 package com.betera.logviewer.ui;
 
-import com.sun.java.swing.plaf.windows.WindowsLookAndFeel;
+import com.jtattoo.plaf.graphite.GraphiteLookAndFeel;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -9,7 +9,7 @@ import javax.swing.UIDefaults;
 import javax.swing.UIManager;
 
 public class LogViewerLookAndFeel
-        extends WindowsLookAndFeel
+        extends GraphiteLookAndFeel
 {
 
     private int logViewerFontSize = 14;

@@ -31,6 +31,7 @@ public class Icons
     public static final ImageIcon okIcon;
     public static final ImageIcon aboutIcon;
     public static final ImageIcon refreshIcon;
+    public static final ImageIcon fontIcon;
 
     static
     {
@@ -60,19 +61,20 @@ public class Icons
         okIcon = load("ok.png");
         aboutIcon = load("codemaster.jpg");
         refreshIcon = load("refresh.png");
+        fontIcon = load("font.png");
     }
 
     private Icons()
     {
     }
 
-    static ImageIcon load(String iconPath)
+    public static ImageIcon load(String iconPath)
     {
         try
         {
             return new ImageIcon(Icons.class.getResource("/images/" + iconPath));
         }
-        catch ( NullPointerException npe )
+        catch ( Exception npe )
         {
             LogViewer.handleException(npe, "Icon \"/images/" + iconPath + "\" not found.");
         }

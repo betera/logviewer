@@ -1,5 +1,6 @@
 package com.betera.logviewer.file;
 
+import java.awt.Font;
 import java.io.File;
 import java.util.List;
 import javax.swing.JComponent;
@@ -22,5 +23,7 @@ public interface LogfilesContainer
     boolean isLogfileFocused(Logfile aLogfile);
 
     void focusLogfile(Logfile aLogfile);
+
+    void defaultFontChanged(Font newFont);
 
 }

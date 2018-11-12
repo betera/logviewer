@@ -1,9 +1,12 @@
 package com.betera.logviewer.file;
 
+import java.awt.Font;
 import javax.swing.JComponent;
 
 public interface Logfile
 {
+
+    void defaultFontChanged(Font aNewFont);
 
     LogfilesContainer getContainer();
 

@@ -322,7 +322,6 @@ public class JTextPaneLogfile
         doc.addDocumentListener(createDocumentScrollListener());
         textPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
         textPane.setFont(new Font("Consolas", Font.PLAIN, 18));
-
     }
 
     private JToolBar createTextViewToolbar()
@@ -652,6 +651,20 @@ public class JTextPaneLogfile
             StyleConstants.setForeground(attrs, c);
         }
         doc.setCharacterAttributes(start, end, attrs, false);
+    }
+
+    @Override
+    public void defaultFontChanged(Font aNewFont)
+    {
+        if ( textPane != null )
+        {
+            textPane.setFont(aNewFont);
+        }
+
+        if ( docTable != null )
+        {
+            docTable.setFont(aNewFont);
+        }
     }
 
     @Override

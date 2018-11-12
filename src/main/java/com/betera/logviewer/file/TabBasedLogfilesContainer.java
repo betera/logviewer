@@ -7,6 +7,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -117,6 +118,15 @@ public class TabBasedLogfilesContainer
         if ( index > -1 )
         {
             component.setSelectedIndex(index);
+        }
+    }
+
+    @Override
+    public void defaultFontChanged(Font newFont)
+    {
+        for ( Logfile logfile : logfiles )
+        {
+            logfile.defaultFontChanged(newFont);
         }
     }
 

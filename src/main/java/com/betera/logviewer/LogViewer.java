@@ -6,12 +6,14 @@ import com.betera.logviewer.file.TabBasedLogfilesContainer;
 import com.betera.logviewer.file.column.LogfileParser;
 import com.betera.logviewer.file.highlight.HighlightManager;
 import com.betera.logviewer.ui.CollapsiblePanel;
+import com.betera.logviewer.ui.JFontChooser;
 import com.betera.logviewer.ui.LogViewerLookAndFeel;
 import com.betera.logviewer.ui.action.AboutAction;
 import com.betera.logviewer.ui.action.EditAction;
 import com.betera.logviewer.ui.action.OpenFileAction;
 import com.betera.logviewer.ui.maven.MavenConfigManager;
 import com.betera.logviewer.ui.maven.MavenManager;
+import com.jtattoo.plaf.AbstractLookAndFeel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -61,7 +63,7 @@ public class LogViewer
     public static String mavenLogfile;
     private static JFrame mainFrame;
     private static GlassPane mfGlassPane;
-    private static LogViewerLookAndFeel laf;
+    private static AbstractLookAndFeel laf;
     private LogfilesContainer logContainer;
     private JCheckBox followTailCheckbox;
     private JCheckBox focusActiveCheckbox;
@@ -405,6 +407,24 @@ public class LogViewer
 
         toolbar.add(followTailCheckbox);
         toolbar.add(focusActiveCheckbox);
+
+        toolbar.add(new AbstractAction("Font", Icons.fontIcon)
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+
+                JFontChooser fc = new JFontChooser();
+                fc.setPreferredSize(new Dimension(600, 400));
+                fc.setSelectedFont(HighlightManager.getInstance().getDefaultEntry().getFont());
+                int ret = fc.showDialog(LogViewer.getMainFrame());
+                if ( ret == JFontChooser.OK_OPTION )
+                {
+                    HighlightManager.getInstance().getDefaultEntry().setFont(fc.getSelectedFont());
+                    logContainer.defaultFontChanged(fc.getSelectedFont());
+                }
+            }
+        });
         return toolbar;
     }
 
