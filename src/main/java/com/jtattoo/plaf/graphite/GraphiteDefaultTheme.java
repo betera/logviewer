@@ -54,7 +54,7 @@ public class GraphiteDefaultTheme
     {
         super.setUpColor();
 
-//        showFocusFrame = true;
+        showFocusFrame = true;
 
         foregroundColor = black;
         backgroundColor = new ColorUIResource(224, 224, 224);
@@ -77,8 +77,8 @@ public class GraphiteDefaultTheme
         gridColor = new ColorUIResource(200, 200, 200);
 
         rolloverColor = orange;
-        rolloverColorLight = new ColorUIResource(255, 213, 113);
-        rolloverColorDark = new ColorUIResource(240, 168, 0);
+        rolloverColorLight = new ColorUIResource(115, 213, 255);
+        rolloverColorDark = new ColorUIResource(0, 168, 240);
 
         buttonForegroundColor = black;
         buttonBackgroundColor = extraLightGray;

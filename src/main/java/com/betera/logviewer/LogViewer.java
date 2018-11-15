@@ -13,16 +13,19 @@ import com.betera.logviewer.ui.action.EditAction;
 import com.betera.logviewer.ui.action.OpenFileAction;
 import com.betera.logviewer.ui.maven.MavenConfigManager;
 import com.betera.logviewer.ui.maven.MavenManager;
+import com.jhlabs.image.GaussianFilter;
 import com.jtattoo.plaf.AbstractLookAndFeel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -456,12 +459,32 @@ public class LogViewer
     public static class GlassPane
             extends JPanel
     {
+        BufferedImage img;
+
+        @Override
+        public void setVisible(boolean aFlag)
+        {
+            if ( aFlag )
+            {
+                JComponent f = LogViewer.getMainFrame().getRootPane();
+                if ( f.getWidth() != 0 && f.getHeight() != 0 )
+                {
+                    img = new BufferedImage(f.getWidth(), f.getHeight(), BufferedImage.TYPE_INT_ARGB);
+                    Graphics2D g = img.createGraphics();
+                    f.paint(g);
+                    g.setColor(new Color(0, 0, 0, 100));
+                    g.fillRect(0, 0, img.getWidth(), img.getHeight());
+                    img = new GaussianFilter(12.0f).filter(img, null);
+                    g.dispose();
+                }
+            }
+            super.setVisible(aFlag);
+        }
 
         @Override
         public void paint(Graphics g)
         {
-            g.setColor(new Color(180, 180, 180, 128));
-            g.fillRect(0, 0, getSize().width, getSize().height);
+            ((Graphics2D) g).drawImage(img, null, 0, 0);
         }
     }
 

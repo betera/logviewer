@@ -42,6 +42,21 @@ public class TabBasedLogfilesContainer
     {
         this.logViewer = logViewer;
         component = new JTabbedPane();
+        component.addChangeListener(new ChangeListener()
+        {
+            @Override
+            public void stateChanged(ChangeEvent e)
+            {
+                for ( int i = 0; i < component.getTabCount(); i++ )
+                {
+                    LogfileTab tab = (LogfileTab) component.getTabComponentAt(i);
+                    if ( tab != null )
+                    {
+                        tab.setIsActive(i == component.getSelectedIndex());
+                    }
+                }
+            }
+        });
         component.setBackground(Color.GRAY);
         logfiles = new ArrayList<>();
         logfileMap = new HashMap<>();
@@ -187,7 +202,7 @@ public class TabBasedLogfilesContainer
         if ( tab != null && !component.getSelectedComponent().equals(tab) )
         {
             tab.setHasChanges(hasChanges && !isLogfileFocused(logfile));
-            if ( !isLogfileFocused(logfile) && logViewer.getFocusActiveCheckbox().isSelected() )
+            if ( hasChanges && !isLogfileFocused(logfile) && logViewer.getFocusActiveCheckbox().isSelected() )
             {
                 focusLogfile(logfile);
             }
@@ -228,7 +243,7 @@ public class TabBasedLogfilesContainer
 
         private Logfile logfile;
 
-        private JLabel title;
+        private TitleLabel title;
 
         private ChangesPanel hasChangesPanel;
 
@@ -245,7 +260,7 @@ public class TabBasedLogfilesContainer
             setOpaque(false);
 
             hasChangesPanel = new ChangesPanel();
-            title = new JLabel(aLogfile.getDisplayName());
+            title = new TitleLabel(aLogfile.getDisplayName());
             title.setFont(UIManager.getFont("TabbedPane.font"));
             title.setOpaque(false);
             closeButton = new JButton();
@@ -285,6 +300,29 @@ public class TabBasedLogfilesContainer
         {
             hasChangesPanel.setHasChanges(aChangesFlag);
             repaint();
+        }
+
+        public void setIsActive(boolean isActive)
+        {
+            title.setIsActive(isActive);
+        }
+
+        private class TitleLabel
+                extends JLabel
+        {
+            private boolean isActive;
+
+            public TitleLabel(String displayName)
+            {
+                super(displayName);
+            }
+
+            public void setIsActive(boolean anActiveFlag)
+            {
+                setFont(getFont().deriveFont(anActiveFlag ? Font.BOLD : Font.PLAIN));
+                setForeground(anActiveFlag ? Color.white : Color.black);
+            }
+
         }
 
     }

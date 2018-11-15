@@ -277,7 +277,7 @@ public abstract class AbstractTheme
 
     public void setUpColor()
     {
-        windowDecoration = true;
+        windowDecoration = false;
         macStyleWindowDecoration = JTattooUtilities.isMac();
         centerWindowTitle = JTattooUtilities.isWindows() && JTattooUtilities.getOSVersion() >= 6.2;
         linuxStyleScrollBar = !JTattooUtilities.isWindows();

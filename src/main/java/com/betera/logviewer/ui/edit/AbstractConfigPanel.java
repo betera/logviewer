@@ -112,6 +112,7 @@ public class AbstractConfigPanel
         JButton cancelBtn = new JButton();
         cancelBtn.setContentAreaFilled(false);
         cancelBtn.setBorderPainted(false);
+        cancelBtn.setOpaque(false);
         cancelBtn.setIcon(Icons.cancelIcon);
         cancelBtn.setFocusable(false);
         cancelBtn.setUI(new MyWindowsButtonUI());
